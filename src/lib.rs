@@ -28,6 +28,8 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// Creates new empty `TopologicalSort`.
     ///
     /// ```rust
+    ///# extern crate "topological-sort" as tsort;
+    ///# fn main() {
     /// use tsort::TopologicalSort;
     /// let mut ts = TopologicalSort::new();
     /// ts.add_dependency("hello_world.o", "hello_world");
@@ -41,6 +43,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// assert_eq!(vec!["hello_world"],
     ///            { let mut v = ts.pop_all(); v.sort(); v });
     /// assert!(ts.pop_all().is_empty());
+    ///# }
     /// ```
     #[inline]
     pub fn new() -> TopologicalSort<T> { TopologicalSort { top: HashMap::new() } }

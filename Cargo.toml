@@ -1,5 +1,9 @@
 [package]
 
-name = "tsort"
+name = "topological-sort"
 version = "0.0.1"
 authors = ["gifnksm <makoto.nksm+github@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/gifnksm/topological-sort-rs"
+description = "Performs topological sorting."
+documentation = "https://gifnksm.github.io/topological-sort-rs"
