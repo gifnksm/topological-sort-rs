@@ -61,7 +61,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// * `prec` - The element appears before `succ`. `prec` is depended on by `succ`.
     /// * `succ` - The element appears after `prec`. `succ` depends on `prec`.
     pub fn add_dependency(&mut self, prec: T, succ: T) {
-        match self.top.entry(&prec) {
+        match self.top.entry(prec) {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
                 dep.succ.insert(succ.clone());
@@ -75,7 +75,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             }
         }
 
-        match self.top.entry(&succ) {
+        match self.top.entry(succ) {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
                 dep.num_prec += 1;
