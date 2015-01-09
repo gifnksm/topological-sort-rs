@@ -5,15 +5,15 @@
         unused_qualifications, unused_results, unused_typecasts)]
 
 use std::collections::{HashMap, HashSet};
-use std::collections::hash_map::Entry;
+use std::collections::hash_map::{Entry, Hasher};
 use std::hash::Hash;
 
 struct Dependency<T> {
-    num_prec: uint,
+    num_prec: usize,
     succ: HashSet<T>
 }
 
-impl<T: Hash + Eq> Dependency<T> {
+impl<T: Hash<Hasher> + Eq> Dependency<T> {
     fn new() -> Dependency<T> { Dependency { num_prec: 0, succ: HashSet::new() } }
 }
 
@@ -22,7 +22,7 @@ pub struct TopologicalSort<T> {
     top: HashMap<T, Dependency<T>>
 }
 
-impl<T: Hash + Eq + Clone> TopologicalSort<T> {
+impl<T: Hash<Hasher> + Eq + Clone> TopologicalSort<T> {
     /// Creates new empty `TopologicalSort`.
     ///
     /// ```rust
@@ -48,7 +48,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
 
     /// Returns the number of elements in the `TopologicalSort`.
     #[inline]
-    pub fn len(&self) -> uint { self.top.len() }
+    pub fn len(&self) -> usize { self.top.len() }
 
     /// Returns true if the `TopologicalSort` contains no elements.
     #[inline]
@@ -132,7 +132,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     }
 }
 
-impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
+impl<T: Hash<Hasher> + Eq + Clone> Iterator for TopologicalSort<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<T> { self.pop() }
