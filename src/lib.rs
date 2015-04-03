@@ -162,7 +162,7 @@ mod test {
             let l = ts.len();
             let mut v = ts.pop_all();
             v.sort();
-            assert_eq!(result, v);
+            assert_eq!(result, &v[..]);
             assert_eq!(l - result.len(), ts.len());
         }
 
