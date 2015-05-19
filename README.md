@@ -16,5 +16,5 @@ topological-sort = "*"
 and this to your crate root:
 
 ```rust
-extern crate "topological-sort" as tsort;
+extern crate topological_sort;
 ```
