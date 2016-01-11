@@ -1,4 +1,8 @@
-# topological-sort-rs [![Build Status](https://travis-ci.org/gifnksm/topological-sort-rs.svg)](https://travis-ci.org/gifnksm/topological-sort-rs) [![Coverage Status](https://coveralls.io/repos/gifnksm/topological-sort-rs/badge.svg?branch=master&service=github)](https://coveralls.io/github/gifnksm/topological-sort-rs?branch=master)
+# topological-sort-rs
+
+[![Build Status](https://travis-ci.org/gifnksm/topological-sort-rs.svg)](https://travis-ci.org/gifnksm/topological-sort-rs)
+[![Coverage Status](https://coveralls.io/repos/gifnksm/topological-sort-rs/badge.svg?branch=master&service=github)](https://coveralls.io/github/gifnksm/topological-sort-rs?branch=master)
+[![crates.io](http://meritbadge.herokuapp.com/topological-sort)](https://crates.io/crates/topological-sort)
 
 Performs topological sorting.
 
@@ -10,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-topological-sort = "*"
+topological-sort = "0.0"
 ```
 
 and this to your crate root:
