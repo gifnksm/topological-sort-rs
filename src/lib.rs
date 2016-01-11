@@ -10,16 +10,21 @@ use std::hash::Hash;
 
 struct Dependency<T> {
     num_prec: usize,
-    succ: HashSet<T>
+    succ: HashSet<T>,
 }
 
 impl<T: Hash + Eq> Dependency<T> {
-    fn new() -> Dependency<T> { Dependency { num_prec: 0, succ: HashSet::new() } }
+    fn new() -> Dependency<T> {
+        Dependency {
+            num_prec: 0,
+            succ: HashSet::new(),
+        }
+    }
 }
 
 /// Performs topological sorting.
 pub struct TopologicalSort<T> {
-    top: HashMap<T, Dependency<T>>
+    top: HashMap<T, Dependency<T>>,
 }
 
 impl<T: Hash + Eq + Clone> TopologicalSort<T> {
@@ -44,15 +49,21 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// # }
     /// ```
     #[inline]
-    pub fn new() -> TopologicalSort<T> { TopologicalSort { top: HashMap::new() } }
+    pub fn new() -> TopologicalSort<T> {
+        TopologicalSort { top: HashMap::new() }
+    }
 
     /// Returns the number of elements in the `TopologicalSort`.
     #[inline]
-    pub fn len(&self) -> usize { self.top.len() }
+    pub fn len(&self) -> usize {
+        self.top.len()
+    }
 
     /// Returns true if the `TopologicalSort` contains no elements.
     #[inline]
-    pub fn is_empty(&self) -> bool { self.top.is_empty() }
+    pub fn is_empty(&self) -> bool {
+        self.top.is_empty()
+    }
 
     /// Registers the two elements' dependency.
     ///
@@ -66,11 +77,11 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
                 let mut dep = Dependency::new();
                 dep.succ.insert(succ.clone());
                 let _ = e.insert(dep);
-            },
+            }
             Entry::Occupied(e) => {
                 if !e.into_mut().succ.insert(succ.clone()) {
                     // Already registered
-                    return
+                    return;
                 }
             }
         }
@@ -108,10 +119,10 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// If `pop_all` returns an empty vector and `len` is not 0, there is cyclic dependencies.
     pub fn pop_all(&mut self) -> Vec<T> {
         let keys = self.top
-            .iter()
-            .filter(|&(_, v)| v.num_prec == 0)
-            .map(|(k, _)| k.clone())
-            .collect::<Vec<_>>();
+                       .iter()
+                       .filter(|&(_, v)| v.num_prec == 0)
+                       .map(|(k, _)| k.clone())
+                       .collect::<Vec<_>>();
         for k in keys.iter() {
             let _ = self.remove(k);
         }
@@ -135,7 +146,9 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
 impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
     type Item = T;
 
-    fn next(&mut self) -> Option<T> { self.pop() }
+    fn next(&mut self) -> Option<T> {
+        self.pop()
+    }
 }
 
 
@@ -192,4 +205,3 @@ mod test {
         check(&[], &mut ts);
     }
 }
-
