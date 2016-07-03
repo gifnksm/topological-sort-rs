@@ -200,7 +200,22 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
 
 #[cfg(test)]
 mod test {
+    use std::iter::FromIterator;
+
     use super::TopologicalSort;
+
+    #[test]
+    fn from_iter() {
+        let t = vec![4, 3, 3, 5, 7, 6, 8];
+        let mut ts = TopologicalSort::<i32>::from_iter(t);
+        assert_eq!(Some(3), ts.next());
+        assert_eq!(Some(4), ts.next());
+        assert_eq!(Some(5), ts.next());
+        assert_eq!(Some(6), ts.next());
+        assert_eq!(Some(7), ts.next());
+        assert_eq!(Some(8), ts.next());
+        assert_eq!(None, ts.next());
+    }
 
     #[test]
     fn iter() {
