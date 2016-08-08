@@ -11,9 +11,11 @@
         unused, unused_extern_crates, unused_import_braces,
         unused_qualifications, unused_results)]
 
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
 use std::hash::Hash;
+use std::iter::FromIterator;
 
 struct Dependency<T> {
     num_prec: usize,
@@ -105,6 +107,24 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         }
     }
 
+    /// Inserts an element, without adding any dependencies from or to it.
+    ///
+    /// If the `TopologicalSort` did not have this element present, `true` is returned.
+    ///
+    /// If the `TopologicalSort` already had this element present, `false` is returned.
+    pub fn insert(&mut self, elt: T) -> bool {
+        match self.top.entry(elt) {
+            Entry::Vacant(e) => {
+                let dep = Dependency::new();
+                let _ = e.insert(dep);
+                true
+            }
+            Entry::Occupied(_) => {
+                false
+            }
+        }
+    }
+
     /// Removes the item that is not depended on by any other items and returns it, or `None` if there is no such item.
     ///
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
@@ -150,6 +170,25 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     }
 }
 
+impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
+    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> TopologicalSort<T> {
+        let mut top = TopologicalSort::new();
+        let mut seen = Vec::<T>::default();
+        for item in iter {
+            top.insert(item.clone());
+            for seen_item in seen.iter().cloned() {
+                match seen_item.partial_cmp(&item) {
+                    Some(Ordering::Less) => { top.add_dependency(seen_item, item.clone()); }
+                    Some(Ordering::Greater) => { top.add_dependency(item.clone(), seen_item); }
+                    _ => ()
+                }
+            }
+            seen.push(item);
+        }
+        top
+    }
+}
+
 impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
     type Item = T;
 
@@ -161,7 +200,22 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
 
 #[cfg(test)]
 mod test {
+    use std::iter::FromIterator;
+
     use super::TopologicalSort;
+
+    #[test]
+    fn from_iter() {
+        let t = vec![4, 3, 3, 5, 7, 6, 8];
+        let mut ts = TopologicalSort::<i32>::from_iter(t);
+        assert_eq!(Some(3), ts.next());
+        assert_eq!(Some(4), ts.next());
+        assert_eq!(Some(5), ts.next());
+        assert_eq!(Some(6), ts.next());
+        assert_eq!(Some(7), ts.next());
+        assert_eq!(Some(8), ts.next());
+        assert_eq!(None, ts.next());
+    }
 
     #[test]
     fn iter() {
