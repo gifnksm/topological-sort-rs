@@ -197,6 +197,20 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
     }
 }
 
+use std::fmt;
+
+impl<T: fmt::Debug + Hash + Eq> fmt::Debug for Dependency<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "prec={}, succ={:?}", self.num_prec, self.succ)
+    }
+}
+
+impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.top)
+    }
+}
+
 
 #[cfg(test)]
 mod test {
@@ -264,5 +278,21 @@ mod test {
         check(&[8, 11], &mut ts);
         check(&[2, 9, 10], &mut ts);
         check(&[], &mut ts);
+    }
+
+    #[test]
+    fn cyclic_deadlock() {
+        let mut ts = TopologicalSort::new();
+        ts.add_dependency("stone", "sharp");
+
+        ts.add_dependency("bucket", "hole");
+        ts.add_dependency("hole", "straw");
+        ts.add_dependency("straw", "axe");
+        ts.add_dependency("axe", "sharp");
+        ts.add_dependency("sharp", "water");
+        ts.add_dependency("water", "bucket");
+        assert_eq!(ts.pop(), Some("stone"));
+        assert!(ts.pop().is_none());
+        println!("{:?}", ts);
     }
 }
