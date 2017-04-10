@@ -31,6 +31,8 @@ impl<T: Hash + Eq> Dependency<T> {
     }
 }
 
+
+
 /// Performs topological sorting.
 pub struct TopologicalSort<T> {
     top: HashMap<T, Dependency<T>>,
@@ -129,11 +131,8 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     ///
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
     pub fn pop(&mut self) -> Option<T> {
-        self.top
-            .iter()
-            .filter(|&(_, v)| v.num_prec == 0)
-            .next()
-            .map(|(k, _)| k.clone())
+        self.peek()
+            .map(T::clone)
             .map(|key| {
                 let _ = self.remove(&key);
                 key
@@ -154,6 +153,26 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             let _ = self.remove(k);
         }
         keys
+    }
+
+    /// Return a reference to the first item that does not depend on any other items, or `None` if
+    /// there is no such item.
+    pub fn peek(&self) -> Option<&T> {
+        self.top
+            .iter()
+            .filter(|&(_, v)| v.num_prec == 0)
+            .map(|(k, _)| k)
+            .next()
+    }
+
+    /// Return a vector of references to all items that do not depend on any other items, or an
+    /// empty vector if there are no such items.
+    pub fn peek_all(&self) -> Vec<&T> {
+        self.top
+            .iter()
+            .filter(|&(_, v)| v.num_prec == 0)
+            .map(|(k, _)| k)
+            .collect::<Vec<_>>()
     }
 
 
