@@ -31,6 +31,8 @@ impl<T: Hash + Eq> Dependency<T> {
     }
 }
 
+
+
 /// Performs topological sorting.
 pub struct TopologicalSort<T> {
     top: HashMap<T, Dependency<T>>,
@@ -129,11 +131,8 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     ///
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
     pub fn pop(&mut self) -> Option<T> {
-        self.top
-            .iter()
-            .filter(|&(_, v)| v.num_prec == 0)
-            .next()
-            .map(|(k, _)| k.clone())
+        self.peek()
+            .map(T::clone)
             .map(|key| {
                 let _ = self.remove(&key);
                 key
@@ -154,6 +153,26 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             let _ = self.remove(k);
         }
         keys
+    }
+
+    /// Return a reference to the first item that does not depend on any other items, or `None` if
+    /// there is no such item.
+    pub fn peek(&self) -> Option<&T> {
+        self.top
+            .iter()
+            .filter(|&(_, v)| v.num_prec == 0)
+            .map(|(k, _)| k)
+            .next()
+    }
+
+    /// Return a vector of references to all items that do not depend on any other items, or an
+    /// empty vector if there are no such items.
+    pub fn peek_all(&self) -> Vec<&T> {
+        self.top
+            .iter()
+            .filter(|&(_, v)| v.num_prec == 0)
+            .map(|(k, _)| k)
+            .collect::<Vec<_>>()
     }
 
 
@@ -194,6 +213,20 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
 
     fn next(&mut self) -> Option<T> {
         self.pop()
+    }
+}
+
+use std::fmt;
+
+impl<T: fmt::Debug + Hash + Eq> fmt::Debug for Dependency<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "prec={}, succ={:?}", self.num_prec, self.succ)
+    }
+}
+
+impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.top)
     }
 }
 
@@ -264,5 +297,21 @@ mod test {
         check(&[8, 11], &mut ts);
         check(&[2, 9, 10], &mut ts);
         check(&[], &mut ts);
+    }
+
+    #[test]
+    fn cyclic_deadlock() {
+        let mut ts = TopologicalSort::new();
+        ts.add_dependency("stone", "sharp");
+
+        ts.add_dependency("bucket", "hole");
+        ts.add_dependency("hole", "straw");
+        ts.add_dependency("straw", "axe");
+        ts.add_dependency("axe", "sharp");
+        ts.add_dependency("sharp", "water");
+        ts.add_dependency("water", "bucket");
+        assert_eq!(ts.pop(), Some("stone"));
+        assert!(ts.pop().is_none());
+        println!("{:?}", ts);
     }
 }
