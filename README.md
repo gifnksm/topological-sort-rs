@@ -6,7 +6,7 @@
 
 Performs topological sorting.
 
-[Documentation](http://gifnksm.github.io/topological-sort-rs)
+[Documentation](https://docs.rs/topological-sort/~0.0)
 
 ## How to use?
 
