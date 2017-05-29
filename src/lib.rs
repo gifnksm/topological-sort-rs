@@ -26,6 +26,7 @@ use std::fmt;
 use std::hash::Hash;
 use std::iter::FromIterator;
 
+#[derive(Clone)]
 struct Dependency<T> {
     num_prec: usize,
     succ: HashSet<T>,
@@ -43,6 +44,7 @@ impl<T: Hash + Eq> Dependency<T> {
 
 
 /// Performs topological sorting.
+#[derive(Clone)]
 pub struct TopologicalSort<T> {
     top: HashMap<T, Dependency<T>>,
 }
@@ -227,6 +229,7 @@ impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
 }
 
 /// A link between two items in a sort.
+#[derive(Copy, Clone, Debug)]
 pub struct DependencyLink<T> {
     /// The element which is depened upon by `succ`.
     pub prec: T,
@@ -260,8 +263,6 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
         self.pop()
     }
 }
-
-use std::fmt;
 
 impl<T: fmt::Debug + Hash + Eq> fmt::Debug for Dependency<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
