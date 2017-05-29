@@ -109,6 +109,11 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         }
     }
 
+    /// Registers a dependency link.
+    pub fn add_link(&mut self, link: DependencyLink<T>) {
+        self.add_dependency(link.prec, link.succ)
+    }
+
     /// Inserts an element, without adding any dependencies from or to it.
     ///
     /// If the `TopologicalSort` did not have this element present, `true` is returned.
@@ -203,6 +208,33 @@ impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
                 }
             }
             seen.push(item);
+        }
+        top
+    }
+}
+
+/// A link between two items in a sort.
+pub struct DependencyLink<T> {
+    /// The element which is depened upon by `succ`.
+    pub prec: T,
+    /// The element which depends on `prec`.
+    pub succ: T,
+}
+
+impl<T> From<(T, T)> for DependencyLink<T> {
+    fn from(tuple: (T, T)) -> Self {
+        DependencyLink {
+            succ: tuple.0,
+            prec: tuple.1,
+        }
+    }
+}
+
+impl<T: Eq + Hash + Clone> FromIterator<DependencyLink<T>> for TopologicalSort<T> {
+    fn from_iter<I: IntoIterator<Item=DependencyLink<T>>>(iter: I) -> TopologicalSort<T> {
+        let mut top = TopologicalSort::new();
+        for link in iter {
+            top.add_link(link);
         }
         top
     }
