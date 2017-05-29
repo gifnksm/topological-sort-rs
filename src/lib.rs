@@ -7,16 +7,38 @@
 
 //! Performs topological sorting.
 
-#![warn(bad_style, missing_docs,
-        unused, unused_extern_crates, unused_import_braces,
-        unused_qualifications, unused_results)]
+#![warn(bad_style)]
+#![warn(missing_copy_implementations)]
+#![warn(missing_debug_implementations)]
+#![warn(missing_docs)]
+#![warn(trivial_casts)]
+#![warn(trivial_numeric_casts)]
+#![warn(unused)]
+#![warn(unused_extern_crates)]
+#![warn(unused_import_braces)]
+#![warn(unused_qualifications)]
+#![warn(unused_results)]
+
+#![cfg_attr(feature = "cargo-clippy", warn(if_not_else))]
+#![cfg_attr(feature = "cargo-clippy", warn(invalid_upcast_comparisons))]
+#![cfg_attr(feature = "cargo-clippy", warn(items_after_statements))]
+#![cfg_attr(feature = "cargo-clippy", warn(mut_mut))]
+#![cfg_attr(feature = "cargo-clippy", warn(never_loop))]
+#![cfg_attr(feature = "cargo-clippy", warn(nonminimal_bool))]
+#![cfg_attr(feature = "cargo-clippy", warn(option_map_unwrap_or))]
+#![cfg_attr(feature = "cargo-clippy", warn(option_map_unwrap_or_else))]
+#![cfg_attr(feature = "cargo-clippy", warn(option_unwrap_used))]
+#![cfg_attr(feature = "cargo-clippy", warn(result_unwrap_used))]
+#![cfg_attr(feature = "cargo-clippy", warn(used_underscore_binding))]
 
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
+use std::fmt;
 use std::hash::Hash;
 use std::iter::FromIterator;
 
+#[derive(Clone)]
 struct Dependency<T> {
     num_prec: usize,
     succ: HashSet<T>,
@@ -34,6 +56,7 @@ impl<T: Hash + Eq> Dependency<T> {
 
 
 /// Performs topological sorting.
+#[derive(Clone)]
 pub struct TopologicalSort<T> {
     top: HashMap<T, Dependency<T>>,
 }
@@ -126,35 +149,35 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
                 let _ = e.insert(dep);
                 true
             }
-            Entry::Occupied(_) => {
-                false
-            }
+            Entry::Occupied(_) => false,
         }
     }
 
-    /// Removes the item that is not depended on by any other items and returns it, or `None` if there is no such item.
+    /// Removes the item that is not depended on by any other items and returns it, or `None` if
+    /// there is no such item.
     ///
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
     pub fn pop(&mut self) -> Option<T> {
         self.peek()
             .map(T::clone)
             .map(|key| {
-                let _ = self.remove(&key);
-                key
-            })
+                     let _ = self.remove(&key);
+                     key
+                 })
     }
 
 
-    /// Removes all items that are not depended on by any other items and returns it, or empty vector if there are no such items.
+    /// Removes all items that are not depended on by any other items and returns it, or empty
+    /// vector if there are no such items.
     ///
     /// If `pop_all` returns an empty vector and `len` is not 0, there is cyclic dependencies.
     pub fn pop_all(&mut self) -> Vec<T> {
         let keys = self.top
-                       .iter()
-                       .filter(|&(_, v)| v.num_prec == 0)
-                       .map(|(k, _)| k.clone())
-                       .collect::<Vec<_>>();
-        for k in keys.iter() {
+            .iter()
+            .filter(|&(_, v)| v.num_prec == 0)
+            .map(|(k, _)| k.clone())
+            .collect::<Vec<_>>();
+        for k in &keys {
             let _ = self.remove(k);
         }
         keys
@@ -184,7 +207,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     fn remove(&mut self, prec: &T) -> Option<Dependency<T>> {
         let result = self.top.remove(prec);
         if let Some(ref p) = result {
-            for s in p.succ.iter() {
+            for s in &p.succ {
                 if let Some(y) = self.top.get_mut(s) {
                     y.num_prec -= 1;
                 }
@@ -195,16 +218,20 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
 }
 
 impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
-    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> TopologicalSort<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> TopologicalSort<T> {
         let mut top = TopologicalSort::new();
         let mut seen = Vec::<T>::default();
         for item in iter {
             top.insert(item.clone());
             for seen_item in seen.iter().cloned() {
                 match seen_item.partial_cmp(&item) {
-                    Some(Ordering::Less) => { top.add_dependency(seen_item, item.clone()); }
-                    Some(Ordering::Greater) => { top.add_dependency(item.clone(), seen_item); }
-                    _ => ()
+                    Some(Ordering::Less) => {
+                        top.add_dependency(seen_item, item.clone());
+                    }
+                    Some(Ordering::Greater) => {
+                        top.add_dependency(item.clone(), seen_item);
+                    }
+                    _ => (),
                 }
             }
             seen.push(item);
@@ -214,6 +241,7 @@ impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
 }
 
 /// A link between two items in a sort.
+#[derive(Copy, Clone, Debug)]
 pub struct DependencyLink<T> {
     /// The element which is depened upon by `succ`.
     pub prec: T,
@@ -231,7 +259,7 @@ impl<T> From<(T, T)> for DependencyLink<T> {
 }
 
 impl<T: Eq + Hash + Clone> FromIterator<DependencyLink<T>> for TopologicalSort<T> {
-    fn from_iter<I: IntoIterator<Item=DependencyLink<T>>>(iter: I) -> TopologicalSort<T> {
+    fn from_iter<I: IntoIterator<Item = DependencyLink<T>>>(iter: I) -> TopologicalSort<T> {
         let mut top = TopologicalSort::new();
         for link in iter {
             top.add_link(link);
@@ -248,8 +276,6 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
     }
 }
 
-use std::fmt;
-
 impl<T: fmt::Debug + Hash + Eq> fmt::Debug for Dependency<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "prec={}, succ={:?}", self.num_prec, self.succ)
@@ -265,9 +291,8 @@ impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
 
 #[cfg(test)]
 mod test {
-    use std::iter::FromIterator;
-
     use super::TopologicalSort;
+    use std::iter::FromIterator;
 
     #[test]
     fn from_iter() {
