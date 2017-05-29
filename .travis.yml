@@ -24,18 +24,3 @@ script:
       cargo kcov --coveralls &&
       cargo bench &&
       cargo doc
-
-after_success: |
-  [ "${TRAVIS_BRANCH}" = master ] &&
-  [ "${TRAVIS_PULL_REQUEST}" == false ] &&
-  [ "${TRAVIS_RUST_VERSION}" == stable ] &&
-  cargo install ghp &&
-  ghp target/doc &&
-  git config user.name "Travis Documentation" &&
-  git config user.email "name@example.com" &&
-  git push -qf https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages 2>&1 > /dev/null
-
-env:
-  global:
-    - TRAVIS_CARGO_NIGHTLY_FEATURE=""
-    - secure: "LUKpS5lNmu3uE9AUfNyDzT0bf9gpe9PvJrGhE3mT0Dpvj4Nw01sJkTpbXfytzWXi6x8LEOjoZPQGB8RGRsEjL8Iwen0qlVAa6C2diyRE7/UxzRcgK80gQiniddlKEaS07UzDfT/0WmeSYFwBItG0cDNGHE2/Ib9ilFuxw1Iuxns="
