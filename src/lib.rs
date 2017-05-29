@@ -19,6 +19,18 @@
 #![warn(unused_qualifications)]
 #![warn(unused_results)]
 
+#![cfg_attr(feature = "cargo-clippy", warn(if_not_else))]
+#![cfg_attr(feature = "cargo-clippy", warn(invalid_upcast_comparisons))]
+#![cfg_attr(feature = "cargo-clippy", warn(items_after_statements))]
+#![cfg_attr(feature = "cargo-clippy", warn(mut_mut))]
+#![cfg_attr(feature = "cargo-clippy", warn(never_loop))]
+#![cfg_attr(feature = "cargo-clippy", warn(nonminimal_bool))]
+#![cfg_attr(feature = "cargo-clippy", warn(option_map_unwrap_or))]
+#![cfg_attr(feature = "cargo-clippy", warn(option_map_unwrap_or_else))]
+#![cfg_attr(feature = "cargo-clippy", warn(option_unwrap_used))]
+#![cfg_attr(feature = "cargo-clippy", warn(result_unwrap_used))]
+#![cfg_attr(feature = "cargo-clippy", warn(used_underscore_binding))]
+
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
@@ -165,7 +177,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             .filter(|&(_, v)| v.num_prec == 0)
             .map(|(k, _)| k.clone())
             .collect::<Vec<_>>();
-        for k in keys.iter() {
+        for k in &keys {
             let _ = self.remove(k);
         }
         keys
@@ -195,7 +207,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     fn remove(&mut self, prec: &T) -> Option<Dependency<T>> {
         let result = self.top.remove(prec);
         if let Some(ref p) = result {
-            for s in p.succ.iter() {
+            for s in &p.succ {
                 if let Some(y) = self.top.get_mut(s) {
                     y.num_prec -= 1;
                 }
