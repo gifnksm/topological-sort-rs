@@ -68,7 +68,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// # extern crate topological_sort;
     /// # fn main() {
     /// use topological_sort::TopologicalSort;
-    /// let mut ts = TopologicalSort::new();
+    /// let mut ts = TopologicalSort::<&str>::new();
     /// ts.add_dependency("hello_world.o", "hello_world");
     /// ts.add_dependency("hello_world.c", "hello_world");
     /// ts.add_dependency("stdio.h", "hello_world.o");
@@ -105,7 +105,14 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     ///
     /// * `prec` - The element appears before `succ`. `prec` is depended on by `succ`.
     /// * `succ` - The element appears after `prec`. `succ` depends on `prec`.
-    pub fn add_dependency(&mut self, prec: T, succ: T) {
+    pub fn add_dependency<P, S>(&mut self, prec: P, succ: S)
+        where P: Into<T>,
+              S: Into<T>,
+    {
+        self.add_dependency_impl(prec.into(), succ.into())
+    }
+
+    fn add_dependency_impl(&mut self, prec: T, succ: T) {
         match self.top.entry(prec) {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
@@ -142,8 +149,10 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// If the `TopologicalSort` did not have this element present, `true` is returned.
     ///
     /// If the `TopologicalSort` already had this element present, `false` is returned.
-    pub fn insert(&mut self, elt: T) -> bool {
-        match self.top.entry(elt) {
+    pub fn insert<U>(&mut self, elt: U) -> bool
+        where U: Into<T>,
+    {
+        match self.top.entry(elt.into()) {
             Entry::Vacant(e) => {
                 let dep = Dependency::new();
                 let _ = e.insert(dep);
