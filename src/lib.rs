@@ -118,7 +118,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         match self.top.entry(prec) {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
-                dep.succ.insert(succ.clone());
+                let _ = dep.succ.insert(succ.clone());
                 let _ = e.insert(dep);
             }
             Entry::Occupied(e) => {
@@ -232,7 +232,7 @@ impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
         let mut top = TopologicalSort::new();
         let mut seen = Vec::<T>::default();
         for item in iter {
-            top.insert(item.clone());
+            let _ = top.insert(item.clone());
             for seen_item in seen.iter().cloned() {
                 match seen_item.partial_cmp(&item) {
                     Some(Ordering::Less) => {
