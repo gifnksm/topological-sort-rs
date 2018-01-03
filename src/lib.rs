@@ -18,7 +18,6 @@
 #![warn(unused_import_braces)]
 #![warn(unused_qualifications)]
 #![warn(unused_results)]
-
 #![cfg_attr(feature = "cargo-clippy", warn(if_not_else))]
 #![cfg_attr(feature = "cargo-clippy", warn(invalid_upcast_comparisons))]
 #![cfg_attr(feature = "cargo-clippy", warn(items_after_statements))]
@@ -84,7 +83,9 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// ```
     #[inline]
     pub fn new() -> TopologicalSort<T> {
-        TopologicalSort { top: HashMap::new() }
+        TopologicalSort {
+            top: HashMap::new(),
+        }
     }
 
     /// Returns the number of elements in the `TopologicalSort`.
@@ -106,8 +107,9 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// * `prec` - The element appears before `succ`. `prec` is depended on by `succ`.
     /// * `succ` - The element appears after `prec`. `succ` depends on `prec`.
     pub fn add_dependency<P, S>(&mut self, prec: P, succ: S)
-        where P: Into<T>,
-              S: Into<T>,
+    where
+        P: Into<T>,
+        S: Into<T>,
     {
         self.add_dependency_impl(prec.into(), succ.into())
     }
@@ -116,7 +118,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         match self.top.entry(prec) {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
-                dep.succ.insert(succ.clone());
+                let _ = dep.succ.insert(succ.clone());
                 let _ = e.insert(dep);
             }
             Entry::Occupied(e) => {
@@ -150,7 +152,8 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     ///
     /// If the `TopologicalSort` already had this element present, `false` is returned.
     pub fn insert<U>(&mut self, elt: U) -> bool
-        where U: Into<T>,
+    where
+        U: Into<T>,
     {
         match self.top.entry(elt.into()) {
             Entry::Vacant(e) => {
@@ -167,12 +170,10 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     ///
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
     pub fn pop(&mut self) -> Option<T> {
-        self.peek()
-            .map(T::clone)
-            .map(|key| {
-                     let _ = self.remove(&key);
-                     key
-                 })
+        self.peek().map(T::clone).map(|key| {
+            let _ = self.remove(&key);
+            key
+        })
     }
 
 
@@ -231,7 +232,7 @@ impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
         let mut top = TopologicalSort::new();
         let mut seen = Vec::<T>::default();
         for item in iter {
-            top.insert(item.clone());
+            let _ = top.insert(item.clone());
             for seen_item in seen.iter().cloned() {
                 match seen_item.partial_cmp(&item) {
                     Some(Ordering::Less) => {
