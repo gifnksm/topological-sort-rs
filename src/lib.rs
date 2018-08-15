@@ -31,8 +31,8 @@
 #![cfg_attr(feature = "cargo-clippy", warn(used_underscore_binding))]
 
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::Hash;
 use std::iter::FromIterator;
@@ -51,8 +51,6 @@ impl<T: Hash + Eq> Dependency<T> {
         }
     }
 }
-
-
 
 /// Performs topological sorting.
 #[derive(Clone)]
@@ -176,13 +174,13 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         })
     }
 
-
     /// Removes all items that are not depended on by any other items and returns it, or empty
     /// vector if there are no such items.
     ///
     /// If `pop_all` returns an empty vector and `len` is not 0, there is cyclic dependencies.
     pub fn pop_all(&mut self) -> Vec<T> {
-        let keys = self.top
+        let keys = self
+            .top
             .iter()
             .filter(|&(_, v)| v.num_prec == 0)
             .map(|(k, _)| k.clone())
@@ -212,7 +210,6 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             .map(|(k, _)| k)
             .collect::<Vec<_>>()
     }
-
 
     fn remove(&mut self, prec: &T) -> Option<Dependency<T>> {
         let result = self.top.remove(prec);
@@ -297,7 +294,6 @@ impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
         write!(f, "{:?}", self.top)
     }
 }
-
 
 #[cfg(test)]
 mod test {
