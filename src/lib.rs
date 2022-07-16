@@ -18,17 +18,13 @@
 #![warn(unused_import_braces)]
 #![warn(unused_qualifications)]
 #![warn(unused_results)]
-#![cfg_attr(feature = "cargo-clippy", warn(if_not_else))]
-#![cfg_attr(feature = "cargo-clippy", warn(invalid_upcast_comparisons))]
-#![cfg_attr(feature = "cargo-clippy", warn(items_after_statements))]
-#![cfg_attr(feature = "cargo-clippy", warn(mut_mut))]
-#![cfg_attr(feature = "cargo-clippy", warn(never_loop))]
-#![cfg_attr(feature = "cargo-clippy", warn(nonminimal_bool))]
-#![cfg_attr(feature = "cargo-clippy", warn(option_map_unwrap_or))]
-#![cfg_attr(feature = "cargo-clippy", warn(option_map_unwrap_or_else))]
-#![cfg_attr(feature = "cargo-clippy", warn(option_unwrap_used))]
-#![cfg_attr(feature = "cargo-clippy", warn(result_unwrap_used))]
-#![cfg_attr(feature = "cargo-clippy", warn(used_underscore_binding))]
+#![warn(clippy::if_not_else)]
+#![warn(clippy::invalid_upcast_comparisons)]
+#![warn(clippy::items_after_statements)]
+#![warn(clippy::mut_mut)]
+#![warn(clippy::never_loop)]
+#![warn(clippy::nonminimal_bool)]
+#![warn(clippy::used_underscore_binding)]
 
 use std::cmp::Ordering;
 use std::collections::hash_map::Entry;
@@ -63,6 +59,14 @@ pub struct TopologicalSort<T> {
     top: HashMap<T, Dependency<T>>,
 }
 
+impl<T> Default for TopologicalSort<T> {
+    fn default() -> TopologicalSort<T> {
+        TopologicalSort {
+            top: HashMap::new(),
+        }
+    }
+}
+
 impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// Creates new empty `TopologicalSort`.
     ///
@@ -86,9 +90,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// ```
     #[inline]
     pub fn new() -> TopologicalSort<T> {
-        TopologicalSort {
-            top: HashMap::new(),
-        }
+        Default::default()
     }
 
     /// Returns the number of elements in the `TopologicalSort`.
@@ -384,28 +386,31 @@ mod test {
     }
 
     #[quickcheck]
-    fn topo_test_quickcheck(n: usize, edges: Vec<(usize,usize)>) {
-        use std::collections::{HashMap,HashSet};
+    fn topo_test_quickcheck(n: usize, edges: Vec<(usize, usize)>) {
+        use std::collections::{HashMap, HashSet};
 
         let n = n.max(1);
-        let mut marked = vec![false;n];
-        let edges = edges.into_iter().map(|(x,y)| (x%n,y%n)).collect::<Vec<_>>();
+        let mut marked = vec![false; n];
+        let edges = edges
+            .into_iter()
+            .map(|(x, y)| (x % n, y % n))
+            .collect::<Vec<_>>();
         let mut deps = HashMap::new();
         let mut toposort = TopologicalSort::<usize>::new();
 
         for i in 0..n {
-            let _ = deps.insert(i,HashSet::new());
+            let _ = deps.insert(i, HashSet::new());
             assert!(toposort.insert(i));
         }
 
-        for (op,inp) in edges.iter().map(|(x,y)| (y,x)) {
+        for (op, inp) in edges.iter().map(|(x, y)| (y, x)) {
             let inps = deps.get_mut(op).unwrap();
             let _ = inps.insert(*inp);
         }
 
         let deps = deps;
-        for (inp,op) in edges {
-            toposort.add_dependency(inp,op);
+        for (inp, op) in edges {
+            toposort.add_dependency(inp, op);
         }
         while let Some(x) = toposort.pop() {
             for dep in deps.get(&x).unwrap().iter() {
@@ -414,21 +419,28 @@ mod test {
             marked[x] = true;
         }
 
-        if toposort.len() != 0 {
+        if toposort.is_empty() {
+            assert!(marked.into_iter().all(|x| x));
+        } else {
             let dep_fixed = {
-                let mut ret = (0..n).map(|i| (i,HashSet::new())).collect::<HashMap<_,_>>();
-                let mut new_to_add = deps.clone();
+                let mut ret = (0..n)
+                    .map(|i| (i, HashSet::new()))
+                    .collect::<HashMap<_, _>>();
+                let mut new_to_add = deps;
 
                 while !new_to_add.is_empty() {
-                    for (k,v) in new_to_add.drain() {
+                    for (k, v) in new_to_add.drain() {
                         let inps = ret.get_mut(&k).unwrap();
                         inps.extend(v.into_iter());
                     }
-                    for (k,vs) in ret.iter() {
+                    for (k, vs) in ret.iter() {
                         for k2 in vs.iter() {
                             for v2 in ret.get(k2).unwrap().iter() {
                                 if !vs.contains(v2) {
-                                    let _ = new_to_add.entry(*k).or_insert_with(HashSet::new).insert(*v2);
+                                    let _ = new_to_add
+                                        .entry(*k)
+                                        .or_insert_with(HashSet::new)
+                                        .insert(*v2);
                                 }
                             }
                         }
@@ -438,9 +450,7 @@ mod test {
                 ret
             };
 
-            assert!(dep_fixed.into_iter().any(|(op,deps)| deps.contains(&op)));
-        } else {
-            assert!(marked.into_iter().all(|x| x));
+            assert!(dep_fixed.into_iter().any(|(op, deps)| deps.contains(&op)));
         }
     }
 }
