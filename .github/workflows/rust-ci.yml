@@ -62,11 +62,16 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - 1.43.1
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
-            toolchain: stable
+            toolchain: ${{ matrix.rust }}
             profile: minimal
             override: true
       - name: cargo test
@@ -75,11 +80,16 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - 1.43.1
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
-            toolchain: stable
+            toolchain: ${{ matrix.rust }}
             profile: minimal
             override: true
       - name: cargo build
