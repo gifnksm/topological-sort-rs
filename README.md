@@ -1,6 +1,6 @@
 # topological-sort-rs
 
-[![Build Status](https://travis-ci.org/gifnksm/topological-sort-rs.svg)](https://travis-ci.org/gifnksm/topological-sort-rs)
+[![Rust CI](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml/badge.svg)](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml)
 [![Coverage Status](https://coveralls.io/repos/gifnksm/topological-sort-rs/badge.svg?branch=master&service=github)](https://coveralls.io/github/gifnksm/topological-sort-rs?branch=master)
 [![crates.io](https://img.shields.io/crates/v/topological-sort.svg)](https://crates.io/crates/topological-sort)
 
@@ -27,8 +27,8 @@ extern crate topological_sort;
 
 Licensed under either of
 
- * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <https://www.apache.org/licenses/LICENSE-2.0>)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
 
 at your option.
 
