@@ -8,3 +8,7 @@ readme = "README.md"
 repository = "https://github.com/gifnksm/topological-sort-rs"
 description = "Performs topological sorting."
 documentation = "https://docs.rs/topological-sort"
+
+[dev-dependencies]
+quickcheck_macros = "0.9"
+quickcheck = "0.9"
