@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-topological-sort = "0.1"
+topological-sort = "0.2"
 ```
 
 and this to your crate root:
