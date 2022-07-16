@@ -1,14 +1,14 @@
 [package]
-
 name = "topological-sort"
 version = "0.1.0"
+edition = "2018"
+rust = "1.43.1"
 authors = ["gifnksm <makoto.nksm+github@gmail.com>"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/gifnksm/topological-sort-rs"
 description = "Performs topological sorting."
 documentation = "https://docs.rs/topological-sort"
-rust = "1.43.1"
 
 [dev-dependencies]
 quickcheck_macros = "1.0.0"

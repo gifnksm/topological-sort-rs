@@ -32,11 +32,6 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::Hash;
 use std::iter::FromIterator;
-#[cfg(test)]
-#[macro_use(quickcheck)]
-extern crate quickcheck_macros;
-#[cfg(test)]
-extern crate quickcheck;
 
 #[derive(Clone)]
 struct Dependency<T> {
@@ -305,6 +300,7 @@ impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
 #[cfg(test)]
 mod test {
     use super::TopologicalSort;
+    use quickcheck_macros::quickcheck;
     use std::iter::FromIterator;
 
     #[test]
