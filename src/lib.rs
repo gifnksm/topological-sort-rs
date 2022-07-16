@@ -387,7 +387,7 @@ mod test {
     fn topo_test_quickcheck(n: usize, edges: Vec<(usize,usize)>) {
         use std::collections::{HashMap,HashSet};
 
-        let n = if n == 0 { 1 } else { n };
+        let n = n.max(1);
         let mut marked = vec![false;n];
         let edges = edges.into_iter().map(|(x,y)| (x%n,y%n)).collect::<Vec<_>>();
         let mut deps = HashMap::new();
