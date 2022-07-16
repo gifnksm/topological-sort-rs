@@ -384,28 +384,31 @@ mod test {
     }
 
     #[quickcheck]
-    fn topo_test_quickcheck(n: usize, edges: Vec<(usize,usize)>) {
-        use std::collections::{HashMap,HashSet};
+    fn topo_test_quickcheck(n: usize, edges: Vec<(usize, usize)>) {
+        use std::collections::{HashMap, HashSet};
 
         let n = n.max(1);
-        let mut marked = vec![false;n];
-        let edges = edges.into_iter().map(|(x,y)| (x%n,y%n)).collect::<Vec<_>>();
+        let mut marked = vec![false; n];
+        let edges = edges
+            .into_iter()
+            .map(|(x, y)| (x % n, y % n))
+            .collect::<Vec<_>>();
         let mut deps = HashMap::new();
         let mut toposort = TopologicalSort::<usize>::new();
 
         for i in 0..n {
-            let _ = deps.insert(i,HashSet::new());
+            let _ = deps.insert(i, HashSet::new());
             assert!(toposort.insert(i));
         }
 
-        for (op,inp) in edges.iter().map(|(x,y)| (y,x)) {
+        for (op, inp) in edges.iter().map(|(x, y)| (y, x)) {
             let inps = deps.get_mut(op).unwrap();
             let _ = inps.insert(*inp);
         }
 
         let deps = deps;
-        for (inp,op) in edges {
-            toposort.add_dependency(inp,op);
+        for (inp, op) in edges {
+            toposort.add_dependency(inp, op);
         }
         while let Some(x) = toposort.pop() {
             for dep in deps.get(&x).unwrap().iter() {
@@ -416,19 +419,24 @@ mod test {
 
         if toposort.len() != 0 {
             let dep_fixed = {
-                let mut ret = (0..n).map(|i| (i,HashSet::new())).collect::<HashMap<_,_>>();
+                let mut ret = (0..n)
+                    .map(|i| (i, HashSet::new()))
+                    .collect::<HashMap<_, _>>();
                 let mut new_to_add = deps.clone();
 
                 while !new_to_add.is_empty() {
-                    for (k,v) in new_to_add.drain() {
+                    for (k, v) in new_to_add.drain() {
                         let inps = ret.get_mut(&k).unwrap();
                         inps.extend(v.into_iter());
                     }
-                    for (k,vs) in ret.iter() {
+                    for (k, vs) in ret.iter() {
                         for k2 in vs.iter() {
                             for v2 in ret.get(k2).unwrap().iter() {
                                 if !vs.contains(v2) {
-                                    let _ = new_to_add.entry(*k).or_insert_with(HashSet::new).insert(*v2);
+                                    let _ = new_to_add
+                                        .entry(*k)
+                                        .or_insert_with(HashSet::new)
+                                        .insert(*v2);
                                 }
                             }
                         }
@@ -438,7 +446,7 @@ mod test {
                 ret
             };
 
-            assert!(dep_fixed.into_iter().any(|(op,deps)| deps.contains(&op)));
+            assert!(dep_fixed.into_iter().any(|(op, deps)| deps.contains(&op)));
         } else {
             assert!(marked.into_iter().all(|x| x));
         }
