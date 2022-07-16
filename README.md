@@ -1,8 +1,7 @@
 # topological-sort-rs
 
 [![Rust CI](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml/badge.svg)](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml)
-[![Coverage Status](https://coveralls.io/repos/gifnksm/topological-sort-rs/badge.svg?branch=master&service=github)](https://coveralls.io/github/gifnksm/topological-sort-rs?branch=master)
-[![crates.io](https://img.shields.io/crates/v/topological-sort.svg)](https://crates.io/crates/topological-sort)
+[![codecov](https://codecov.io/gh/gifnksm/topological-sort-rs/branch/master/graph/badge.svg?token=VreVOoM3Yb)](https://codecov.io/gh/gifnksm/topological-sort-rs)[![crates.io](https://img.shields.io/crates/v/topological-sort.svg)](https://crates.io/crates/topological-sort)
 
 Performs topological sorting.
 
@@ -15,12 +14,6 @@ Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
 topological-sort = "0.2"
-```
-
-and this to your crate root:
-
-```rust
-extern crate topological_sort;
 ```
 
 ## License
