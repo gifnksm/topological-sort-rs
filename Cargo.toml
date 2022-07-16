@@ -10,5 +10,5 @@ description = "Performs topological sorting."
 documentation = "https://docs.rs/topological-sort"
 
 [dev-dependencies]
-quickcheck_macros = "0.9"
+quickcheck_macros = "1.0"
 quickcheck = "0.9"
