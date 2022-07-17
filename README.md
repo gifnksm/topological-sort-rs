@@ -1,7 +1,8 @@
 # topological-sort-rs
 
 [![Rust CI](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml/badge.svg)](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml)
-[![codecov](https://codecov.io/gh/gifnksm/topological-sort-rs/branch/master/graph/badge.svg?token=VreVOoM3Yb)](https://codecov.io/gh/gifnksm/topological-sort-rs)[![crates.io](https://img.shields.io/crates/v/topological-sort.svg)](https://crates.io/crates/topological-sort)
+[![Codecov](https://codecov.io/gh/gifnksm/topological-sort-rs/branch/master/graph/badge.svg?token=VreVOoM3Yb)](https://codecov.io/gh/gifnksm/topological-sort-rs)
+[![crates.io](https://img.shields.io/crates/v/topological-sort.svg)](https://crates.io/crates/topological-sort)
 
 Performs topological sorting.
 
