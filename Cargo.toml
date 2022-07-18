@@ -13,3 +13,8 @@ documentation = "https://docs.rs/topological-sort"
 [dev-dependencies]
 quickcheck_macros = "1.0.0"
 quickcheck = "1.0.3"
+
+[package.metadata.release]
+pre-release-replacements = [
+    { file = "README.md", search = "topological-sort = \"[0-9\\.]+\"", replace = "{{crate_name}} = \"{{version}}\"" }
+]
