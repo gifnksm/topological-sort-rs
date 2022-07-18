@@ -10,6 +10,9 @@ repository = "https://github.com/gifnksm/topological-sort-rs"
 description = "Performs topological sorting."
 documentation = "https://docs.rs/topological-sort"
 
+[badges]
+maintenance = { status = "passively-maintained" }
+
 [dev-dependencies]
 quickcheck_macros = "1.0.0"
 quickcheck = "1.0.3"

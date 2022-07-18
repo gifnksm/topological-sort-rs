@@ -1,5 +1,6 @@
 # topological-sort-rs
 
+[![maintenance status: passively-maintained](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg)](https://doc.rust-lang.org/cargo/reference/manifest.html#the-badges-section)
 [![license](https://img.shields.io/crates/l/topological-sort.svg)](#license)
 [![crates.io](https://img.shields.io/crates/v/topological-sort.svg)](https://crates.io/crates/topological-sort)
 [![docs.rs](https://img.shields.io/docsrs/topological-sort/latest)](https://docs.rs/topological-sort/latest/)
