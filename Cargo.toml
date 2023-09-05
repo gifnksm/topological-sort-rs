@@ -2,7 +2,7 @@
 name = "topological-sort"
 version = "0.2.2"
 edition = "2018"
-rust-version = "1.43.1"
+rust-version = "1.61.0"
 authors = ["gifnksm <makoto.nksm+github@gmail.com>"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
