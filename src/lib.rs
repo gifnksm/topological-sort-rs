@@ -1,4 +1,4 @@
-// Copyright 2016 oauth-client-rs Developers
+// Copyright 2016 topological-sort-rs Developers
 //
 // Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
 // https://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
