@@ -170,7 +170,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     ///
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
     pub fn pop(&mut self) -> Option<T> {
-        self.peek().map(T::clone).map(|key| {
+        self.peek().cloned().map(|key| {
             let _ = self.remove(&key);
             key
         })
@@ -385,7 +385,7 @@ mod test {
     fn topo_test_quickcheck(n: usize, edges: Vec<(usize, usize)>) {
         use std::collections::{HashMap, HashSet};
 
-        let n = n.max(1).min(1000);
+        let n = n.clamp(1, 1000);
         let mut marked = vec![false; n];
         let edges = edges
             .into_iter()
