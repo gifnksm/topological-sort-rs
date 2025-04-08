@@ -366,6 +366,18 @@ mod test {
     }
 
     #[test]
+    fn self_dependency() {
+        let mut ts = TopologicalSort::<&str>::new();
+        ts.add_dependency("stone", "sharp");
+        ts.add_dependency("sharp", "sharp");
+        ts.add_dependency("sharp", "water");
+        assert_eq!(ts.len(), 3);
+        assert_eq!(ts.pop(), Some("stone"));
+        assert_eq!(ts.len(), 2);
+        assert_eq!(ts.pop(), None);
+    }
+
+    #[test]
     fn cyclic_deadlock() {
         let mut ts = TopologicalSort::new();
         ts.add_dependency("stone", "sharp");
