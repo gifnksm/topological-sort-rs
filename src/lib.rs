@@ -123,6 +123,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             }
             Entry::Occupied(e) => {
                 if !e.into_mut().succ.insert(succ.clone()) {
+                    println!("Already registered");
                     // Already registered
                     return;
                 }
@@ -299,7 +300,7 @@ impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
 
 #[cfg(test)]
 mod test {
-    use super::TopologicalSort;
+    use super::{DependencyLink, TopologicalSort};
     use quickcheck_macros::quickcheck;
     use std::iter::FromIterator;
 
@@ -379,6 +380,27 @@ mod test {
         assert_eq!(ts.pop(), Some("stone"));
         assert!(ts.pop().is_none());
         println!("{:?}", ts);
+    }
+
+    #[test]
+    fn cyclic_dependency_using_add_link() {
+        let mut ts = TopologicalSort::<&str>::new();
+
+        ts.add_link(DependencyLink {
+            prec: "omlet",
+            succ: "egg",
+        });
+        ts.add_link(DependencyLink {
+            prec: "egg",
+            succ: "chicken",
+        });
+        ts.add_link(DependencyLink {
+            prec: "chicken",
+            succ: "egg",
+        });
+        assert_eq!(ts.len(), 3);
+        assert_eq!(ts.pop(), Some("omlet"));
+        assert_eq!(ts.pop(), None);
     }
 
     #[quickcheck]
