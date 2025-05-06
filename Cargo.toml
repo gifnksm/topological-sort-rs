@@ -14,7 +14,7 @@ documentation = "https://docs.rs/topological-sort"
 maintenance = { status = "passively-maintained" }
 
 [dev-dependencies]
-quickcheck_macros = "1.0.0"
+quickcheck_macros = "1.1.0"
 quickcheck = "1.0.3"
 
 [package.metadata.release]
