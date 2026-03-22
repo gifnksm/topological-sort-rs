@@ -2,7 +2,7 @@
 name = "topological-sort"
 version = "0.2.2"
 edition = "2018"
-rust-version = "1.61.0"
+rust-version = "1.85.0"
 authors = ["gifnksm <makoto.nksm+github@gmail.com>"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
@@ -14,7 +14,7 @@ documentation = "https://docs.rs/topological-sort"
 maintenance = { status = "passively-maintained" }
 
 [dev-dependencies]
-quickcheck_macros = "1.0.0"
+quickcheck_macros = "1.2.0"
 quickcheck = "1.0.3"
 
 [package.metadata.release]

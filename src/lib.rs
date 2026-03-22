@@ -170,9 +170,8 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     ///
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
     pub fn pop(&mut self) -> Option<T> {
-        self.peek().cloned().map(|key| {
-            let _ = self.remove(&key);
-            key
+        self.peek().cloned().inspect(|key| {
+            let _ = self.remove(key);
         })
     }
 
