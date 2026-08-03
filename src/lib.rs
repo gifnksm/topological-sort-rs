@@ -7,24 +7,6 @@
 
 //! Performs topological sorting.
 
-#![warn(bad_style)]
-#![warn(missing_copy_implementations)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-#![warn(trivial_casts)]
-#![warn(trivial_numeric_casts)]
-#![warn(unused)]
-#![warn(unused_extern_crates)]
-#![warn(unused_import_braces)]
-#![warn(unused_qualifications)]
-#![warn(clippy::if_not_else)]
-#![warn(clippy::invalid_upcast_comparisons)]
-#![warn(clippy::items_after_statements)]
-#![warn(clippy::mut_mut)]
-#![warn(clippy::never_loop)]
-#![warn(clippy::nonminimal_bool)]
-#![warn(clippy::used_underscore_binding)]
-
 use std::cmp::Ordering;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
@@ -122,7 +104,6 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             }
             Entry::Occupied(e) => {
                 if !e.into_mut().succ.insert(succ.clone()) {
-                    println!("Already registered");
                     // Already registered
                     return false;
                 }

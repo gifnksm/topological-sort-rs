@@ -3,21 +3,36 @@ name = "topological-sort"
 version = "0.2.2"
 edition = "2018"
 rust-version = "1.85.0"
-authors = ["gifnksm <makoto.nksm+github@gmail.com>"]
-license = "MIT OR Apache-2.0"
-readme = "README.md"
-repository = "https://github.com/gifnksm/topological-sort-rs"
 description = "Performs topological sorting."
 documentation = "https://docs.rs/topological-sort"
+readme = "README.md"
+repository = "https://github.com/gifnksm/topological-sort-rs"
+license = "MIT OR Apache-2.0"
+
+[dev-dependencies]
+quickcheck = "1.0.3"
+quickcheck_macros = "1.2.0"
 
 [badges]
 maintenance = { status = "passively-maintained" }
 
-[dev-dependencies]
-quickcheck_macros = "1.2.0"
-quickcheck = "1.0.3"
+[lints.clippy]
+if_not_else = "warn"
+invalid_upcast_comparisons = "warn"
+items_after_statements = "warn"
+mut_mut = "warn"
+never_loop = "warn"
+nonminimal_bool = "warn"
+used_underscore_binding = "warn"
 
-[package.metadata.release]
-pre-release-replacements = [
-    { file = "README.md", search = "topological-sort = \"[0-9\\.]+\"", replace = "{{crate_name}} = \"{{version}}\"" }
-]
+[lints.rust]
+missing_copy_implementations = "warn"
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+nonstandard_style = "warn"
+trivial_casts = "warn"
+trivial_numeric_casts = "warn"
+unused = "warn"
+unused_extern_crates = "warn"
+unused_import_braces = "warn"
+unused_qualifications = "warn"
