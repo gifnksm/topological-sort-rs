@@ -10,7 +10,7 @@ use std::{
     iter::FromIterator,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Dependency<T> {
     num_prec: usize,
     succ: HashSet<T>,
@@ -258,15 +258,11 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
     }
 }
 
-impl<T: fmt::Debug + Hash + Eq> fmt::Debug for Dependency<T> {
+impl<T: fmt::Debug> fmt::Debug for TopologicalSort<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "prec={}, succ={:?}", self.num_prec, self.succ)
-    }
-}
-
-impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.top)
+        f.debug_map()
+            .entries(self.top.iter().map(|(k, dep)| (k, &dep.succ)))
+            .finish()
     }
 }
 
@@ -371,7 +367,6 @@ mod test {
         ts.add_dependency("water", "bucket");
         assert_eq!(ts.pop(), Some("stone"));
         assert!(ts.pop().is_none());
-        println!("{:?}", ts);
     }
 
     #[test]

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Replace `.map(DependencyLink::from)` on `(succ, prec)` tuples with
     `.map(|(succ, prec)| DependencyLink { prec, succ })`.
 * Raised the minimum supported Rust version to Rust 1.85.0.
+* Adjusted `TopologicalSort<T>` debug output to use a more collection-like representation of dependency relationships.
 * Updated project maintenance and tooling.
   * Added regression tests covering self-dependencies and cycles created with `DependencyLink`.
   * Added repository-wide configuration in `.editorconfig`, `.gitattributes`, `.markdownlintignore`, `codecov.yml`, `deny.toml`, and `justfile`, expanded Cargo metadata in `Cargo.toml` for linting and README synchronization, and moved release automation into `release.toml`.
