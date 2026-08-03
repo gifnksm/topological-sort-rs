@@ -236,10 +236,22 @@ where
         I: IntoIterator<Item = DependencyLink<T>>,
     {
         let mut top = TopologicalSort::new();
-        for link in iter {
-            top.add_link(link);
-        }
+        top.extend(iter);
         top
+    }
+}
+
+impl<T> Extend<DependencyLink<T>> for TopologicalSort<T>
+where
+    T: Eq + Hash + Clone,
+{
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = DependencyLink<T>>,
+    {
+        for link in iter {
+            self.add_link(link);
+        }
     }
 }
 
