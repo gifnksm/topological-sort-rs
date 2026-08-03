@@ -4,7 +4,7 @@
 
 use std::{
     cmp::Ordering,
-    collections::{hash_map::Entry, HashMap, HashSet},
+    collections::{HashMap, HashSet, hash_map::Entry},
     fmt,
     hash::Hash,
     iter::FromIterator,
