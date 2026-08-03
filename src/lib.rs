@@ -17,7 +17,6 @@
 #![warn(unused_extern_crates)]
 #![warn(unused_import_braces)]
 #![warn(unused_qualifications)]
-#![warn(unused_results)]
 #![warn(clippy::if_not_else)]
 #![warn(clippy::invalid_upcast_comparisons)]
 #![warn(clippy::items_after_statements)]
@@ -118,8 +117,8 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         match self.top.entry(prec) {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
-                let _ = dep.succ.insert(succ.clone());
-                let _ = e.insert(dep);
+                dep.succ.insert(succ.clone());
+                e.insert(dep);
             }
             Entry::Occupied(e) => {
                 if !e.into_mut().succ.insert(succ.clone()) {
@@ -134,7 +133,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
                 dep.num_prec += 1;
-                let _ = e.insert(dep);
+                e.insert(dep);
             }
             Entry::Occupied(e) => {
                 e.into_mut().num_prec += 1;
@@ -160,7 +159,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         match self.top.entry(elt.into()) {
             Entry::Vacant(e) => {
                 let dep = Dependency::new();
-                let _ = e.insert(dep);
+                e.insert(dep);
                 true
             }
             Entry::Occupied(_) => false,
@@ -173,7 +172,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
     pub fn pop(&mut self) -> Option<T> {
         self.peek().cloned().inspect(|key| {
-            let _ = self.remove(key);
+            self.remove(key);
         })
     }
 
@@ -189,7 +188,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
             .map(|(k, _)| k.clone())
             .collect::<Vec<_>>();
         for k in &keys {
-            let _ = self.remove(k);
+            self.remove(k);
         }
         keys
     }
@@ -232,14 +231,14 @@ impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
         let mut top = TopologicalSort::new();
         let mut seen = Vec::<T>::default();
         for item in iter {
-            let _ = top.insert(item.clone());
+            top.insert(item.clone());
             for seen_item in seen.iter().cloned() {
                 match seen_item.partial_cmp(&item) {
                     Some(Ordering::Less) => {
-                        _ = top.add_dependency(seen_item, item.clone());
+                        top.add_dependency(seen_item, item.clone());
                     }
                     Some(Ordering::Greater) => {
-                        _ = top.add_dependency(item.clone(), seen_item);
+                        top.add_dependency(item.clone(), seen_item);
                     }
                     _ => (),
                 }
@@ -253,7 +252,7 @@ impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
 /// A link between two items in a sort.
 #[derive(Copy, Clone, Debug)]
 pub struct DependencyLink<T> {
-    /// The element which is depened upon by `succ`.
+    /// The element which is depended upon by `succ`.
     pub prec: T,
     /// The element which depends on `prec`.
     pub succ: T,
@@ -272,7 +271,7 @@ impl<T: Eq + Hash + Clone> FromIterator<DependencyLink<T>> for TopologicalSort<T
     fn from_iter<I: IntoIterator<Item = DependencyLink<T>>>(iter: I) -> TopologicalSort<T> {
         let mut top = TopologicalSort::new();
         for link in iter {
-            _ = top.add_link(link);
+            top.add_link(link);
         }
         top
     }
@@ -328,9 +327,9 @@ mod test {
     #[test]
     fn iter() {
         let mut ts = TopologicalSort::<i32>::new();
-        _ = ts.add_dependency(1, 2);
-        _ = ts.add_dependency(2, 3);
-        _ = ts.add_dependency(3, 4);
+        ts.add_dependency(1, 2);
+        ts.add_dependency(2, 3);
+        ts.add_dependency(3, 4);
         assert_eq!(Some(1), ts.next());
         assert_eq!(Some(2), ts.next());
         assert_eq!(Some(3), ts.next());
@@ -349,23 +348,23 @@ mod test {
         }
 
         let mut ts = TopologicalSort::new();
-        _ = ts.add_dependency(7, 11);
+        ts.add_dependency(7, 11);
         assert_eq!(2, ts.len());
-        _ = ts.add_dependency(7, 8);
+        ts.add_dependency(7, 8);
         assert_eq!(3, ts.len());
-        _ = ts.add_dependency(5, 11);
+        ts.add_dependency(5, 11);
         assert_eq!(4, ts.len());
-        _ = ts.add_dependency(3, 8);
+        ts.add_dependency(3, 8);
         assert_eq!(5, ts.len());
-        _ = ts.add_dependency(3, 10);
+        ts.add_dependency(3, 10);
         assert_eq!(6, ts.len());
-        _ = ts.add_dependency(11, 2);
+        ts.add_dependency(11, 2);
         assert_eq!(7, ts.len());
-        _ = ts.add_dependency(11, 9);
+        ts.add_dependency(11, 9);
         assert_eq!(8, ts.len());
-        _ = ts.add_dependency(11, 10);
+        ts.add_dependency(11, 10);
         assert_eq!(8, ts.len());
-        _ = ts.add_dependency(8, 9);
+        ts.add_dependency(8, 9);
         assert_eq!(8, ts.len());
 
         check(&[3, 5, 7], &mut ts);
@@ -389,14 +388,14 @@ mod test {
     #[test]
     fn cyclic_deadlock() {
         let mut ts = TopologicalSort::new();
-        _ = ts.add_dependency("stone", "sharp");
+        ts.add_dependency("stone", "sharp");
 
-        _ = ts.add_dependency("bucket", "hole");
-        _ = ts.add_dependency("hole", "straw");
-        _ = ts.add_dependency("straw", "axe");
-        _ = ts.add_dependency("axe", "sharp");
-        _ = ts.add_dependency("sharp", "water");
-        _ = ts.add_dependency("water", "bucket");
+        ts.add_dependency("bucket", "hole");
+        ts.add_dependency("hole", "straw");
+        ts.add_dependency("straw", "axe");
+        ts.add_dependency("axe", "sharp");
+        ts.add_dependency("sharp", "water");
+        ts.add_dependency("water", "bucket");
         assert_eq!(ts.pop(), Some("stone"));
         assert!(ts.pop().is_none());
         println!("{:?}", ts);
@@ -407,7 +406,7 @@ mod test {
         let mut ts = TopologicalSort::<&str>::new();
 
         ts.add_link(DependencyLink {
-            prec: "omlet",
+            prec: "omelet",
             succ: "egg",
         });
         ts.add_link(DependencyLink {
@@ -419,7 +418,7 @@ mod test {
             succ: "egg",
         });
         assert_eq!(ts.len(), 3);
-        assert_eq!(ts.pop(), Some("omlet"));
+        assert_eq!(ts.pop(), Some("omelet"));
         assert_eq!(ts.pop(), None);
     }
 
@@ -437,18 +436,18 @@ mod test {
         let mut toposort = TopologicalSort::<usize>::new();
 
         for i in 0..n {
-            let _ = deps.insert(i, HashSet::new());
+            deps.insert(i, HashSet::new());
             assert!(toposort.insert(i));
         }
 
         for (op, inp) in edges.iter().map(|(x, y)| (y, x)) {
             let inps = deps.get_mut(op).unwrap();
-            let _ = inps.insert(*inp);
+            inps.insert(*inp);
         }
 
         let deps = deps;
         for (inp, op) in edges {
-            _ = toposort.add_dependency(inp, op);
+            toposort.add_dependency(inp, op);
         }
         while let Some(x) = toposort.pop() {
             for dep in deps.get(&x).unwrap().iter() {
@@ -475,7 +474,7 @@ mod test {
                         for k2 in vs.iter() {
                             for v2 in ret.get(k2).unwrap().iter() {
                                 if !vs.contains(v2) {
-                                    let _ = new_to_add
+                                    new_to_add
                                         .entry(*k)
                                         .or_insert_with(HashSet::new)
                                         .insert(*v2);
