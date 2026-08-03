@@ -9,6 +9,20 @@ readme = "README.md"
 repository = "https://github.com/gifnksm/topological-sort-rs"
 license = "MIT OR Apache-2.0"
 
+[package.metadata.cargo-sync-rdme.badge.badges]
+maintenance = true
+license = { link = "#license" }
+crates-io = true
+docs-rs = true
+rust-version = true
+github-actions = { workflows = "ci.yml" }
+codecov = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
+
 [dev-dependencies]
 quickcheck = "1.0.3"
 quickcheck_macros = "1.2.0"
