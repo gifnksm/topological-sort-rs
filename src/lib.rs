@@ -15,7 +15,10 @@ struct Dependency<T> {
     succ: HashSet<T>,
 }
 
-impl<T: Hash + Eq> Dependency<T> {
+impl<T> Dependency<T>
+where
+    T: Hash + Eq,
+{
     fn new() -> Dependency<T> {
         Dependency {
             num_prec: 0,
@@ -38,7 +41,10 @@ impl<T> Default for TopologicalSort<T> {
     }
 }
 
-impl<T: Hash + Eq + Clone> TopologicalSort<T> {
+impl<T> TopologicalSort<T>
+where
+    T: Hash + Eq + Clone,
+{
     /// Creates new empty `TopologicalSort`.
     ///
     /// ```rust
@@ -221,7 +227,10 @@ pub struct DependencyLink<T> {
     pub succ: T,
 }
 
-impl<T: Eq + Hash + Clone> FromIterator<DependencyLink<T>> for TopologicalSort<T> {
+impl<T> FromIterator<DependencyLink<T>> for TopologicalSort<T>
+where
+    T: Eq + Hash + Clone,
+{
     fn from_iter<I>(iter: I) -> TopologicalSort<T>
     where
         I: IntoIterator<Item = DependencyLink<T>>,
@@ -234,7 +243,10 @@ impl<T: Eq + Hash + Clone> FromIterator<DependencyLink<T>> for TopologicalSort<T
     }
 }
 
-impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
+impl<T> Iterator for TopologicalSort<T>
+where
+    T: Hash + Eq + Clone,
+{
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
@@ -242,7 +254,10 @@ impl<T: Hash + Eq + Clone> Iterator for TopologicalSort<T> {
     }
 }
 
-impl<T: fmt::Debug> fmt::Debug for TopologicalSort<T> {
+impl<T> fmt::Debug for TopologicalSort<T>
+where
+    T: fmt::Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_map()
             .entries(self.top.iter().map(|(k, dep)| (k, &dep.succ)))
