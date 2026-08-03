@@ -15,24 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* **(Breaking Change)** `TopologicalSort::add_dependency()` and `TopologicalSort::add_link()` now return `true` when they add a new edge and `false` when the edge already existed.
+* **(Breaking Change)** `TopologicalSort::add_dependency()` and `TopologicalSort::add_link()` now return `true` when they add a new dependency link and `false` when that link already existed.
 * **(Breaking Change)** Removed `impl From<(T, T)> for DependencyLink<T>`.
-  The tuple order was the inverse of `TopologicalSort::add_dependency(prec,
-  succ)` and `DependencyLink { prec, succ }`, which made it easy to invert an
-  edge by mistake.
+  The tuple order was the inverse of `TopologicalSort::add_dependency(prec, succ)` and `DependencyLink { prec, succ }`, which made it easy to invert a dependency link by mistake.
 
   Migrate tuple-based construction to explicit field names:
-  * Replace `ts.add_link((succ, prec).into())` with
-    `ts.add_link(DependencyLink { prec, succ })`.
-  * Replace `DependencyLink::from((succ, prec))` with
-    `DependencyLink { prec, succ }`.
-  * Replace `.map(DependencyLink::from)` on `(succ, prec)` tuples with
-    `.map(|(succ, prec)| DependencyLink { prec, succ })`.
+
+  * Replace `ts.add_link((succ, prec).into())` with `ts.add_link(DependencyLink { prec, succ })`.
+  * Replace `DependencyLink::from((succ, prec))` with `DependencyLink { prec, succ }`.
+  * Replace `.map(DependencyLink::from)` on `(succ, prec)` tuples with `.map(|(succ, prec)| DependencyLink { prec, succ })`.
+
 * Raised the minimum supported Rust version to Rust 1.85.0.
 * Adjusted `TopologicalSort<T>` debug output to use a more collection-like representation of dependency relationships.
+* Added `#[must_use]` to `TopologicalSort::new()`, `len()`, `is_empty()`, `peek()`, and `peek_all()`, which may produce new warnings when their return values are ignored.
 * Updated project maintenance and tooling.
   * Added regression tests covering self-dependencies and cycles created with `DependencyLink`.
-  * Added repository-wide configuration in `.editorconfig`, `.gitattributes`, `.markdownlintignore`, `codecov.yml`, `deny.toml`, and `justfile`, expanded Cargo metadata in `Cargo.toml` for linting and README synchronization, and moved release automation into `release.toml`.
+  * Added repository-wide configuration in `.editorconfig`, `.gitattributes`, `.markdownlintignore`, `codecov.yml`, `deny.toml`, and `justfile`, expanded Cargo metadata in `Cargo.toml` for linting and README synchronization, tightened the Clippy configuration with additional `cargo` and `restriction` lints, and moved release automation into `release.toml`.
   * Split GitHub Actions automation into dedicated workflows in `.github/workflows/ci.yml`, `.github/workflows/cd.yml`, `.github/workflows/audit.yml`, and `.github/workflows/update-deps.yml`, updated `.github/dependabot.yml`, and expanded checks across Linux, macOS, and Windows.
   * Started tracking `Cargo.lock`.
   * Changed the repository's default branch from `master` to `main` and updated related automation and README badges.

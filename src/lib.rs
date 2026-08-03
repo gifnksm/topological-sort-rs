@@ -68,18 +68,21 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// assert!(ts.pop_all().is_empty());
     /// ```
     #[inline]
+    #[must_use]
     pub fn new() -> TopologicalSort<T> {
-        Default::default()
+        Self::default()
     }
 
     /// Returns the number of elements in the `TopologicalSort`.
     #[inline]
+    #[must_use]
     pub fn len(&self) -> usize {
         self.top.len()
     }
 
     /// Returns true if the `TopologicalSort` contains no elements.
     #[inline]
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.top.is_empty()
     }
@@ -177,6 +180,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
 
     /// Return a reference to the first item that does not depend on any other items, or `None` if
     /// there is no such item.
+    #[must_use]
     pub fn peek(&self) -> Option<&T> {
         self.top
             .iter()
@@ -187,6 +191,7 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
 
     /// Return a vector of references to all items that do not depend on any other items, or an
     /// empty vector if there are no such items.
+    #[must_use]
     pub fn peek_all(&self) -> Vec<&T> {
         self.top
             .iter()
@@ -209,7 +214,10 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
 }
 
 impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> TopologicalSort<T> {
+    fn from_iter<I>(iter: I) -> TopologicalSort<T>
+    where
+        I: IntoIterator<Item = T>,
+    {
         let mut top = TopologicalSort::new();
         let mut seen = Vec::<T>::default();
         for item in iter {
@@ -241,7 +249,10 @@ pub struct DependencyLink<T> {
 }
 
 impl<T: Eq + Hash + Clone> FromIterator<DependencyLink<T>> for TopologicalSort<T> {
-    fn from_iter<I: IntoIterator<Item = DependencyLink<T>>>(iter: I) -> TopologicalSort<T> {
+    fn from_iter<I>(iter: I) -> TopologicalSort<T>
+    where
+        I: IntoIterator<Item = DependencyLink<T>>,
+    {
         let mut top = TopologicalSort::new();
         for link in iter {
             top.add_link(link);
@@ -334,7 +345,7 @@ mod tests {
         fn check(result: &[i32], ts: &mut TopologicalSort<i32>) {
             let l = ts.len();
             let mut v = ts.pop_all();
-            v.sort();
+            v.sort_unstable();
             assert_eq!(result, &v[..]);
             assert_eq!(l - result.len(), ts.len());
         }
@@ -441,7 +452,7 @@ mod tests {
             toposort.add_dependency(inp, op);
         }
         while let Some(x) = toposort.pop() {
-            for dep in deps.get(&x).unwrap().iter() {
+            for dep in &deps[&x] {
                 assert!(marked[*dep]);
             }
             marked[x] = true;
@@ -461,9 +472,9 @@ mod tests {
                         let inps = ret.get_mut(&k).unwrap();
                         inps.extend(v.into_iter());
                     }
-                    for (k, vs) in ret.iter() {
-                        for k2 in vs.iter() {
-                            for v2 in ret.get(k2).unwrap().iter() {
+                    for (k, vs) in &ret {
+                        for k2 in vs {
+                            for v2 in &ret[k2] {
                                 if !vs.contains(v2) {
                                     new_to_add
                                         .entry(*k)

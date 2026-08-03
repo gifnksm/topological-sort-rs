@@ -33,13 +33,12 @@ quickcheck_macros = "1.2.0"
 maintenance = { status = "passively-maintained" }
 
 [lints.clippy]
-if_not_else = "warn"
-invalid_upcast_comparisons = "warn"
-items_after_statements = "warn"
-mut_mut = "warn"
-never_loop = "warn"
-nonminimal_bool = "warn"
-used_underscore_binding = "warn"
+cargo = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
+# Restriction group
+get_unwrap = "warn"
+inline_trait_bounds = "warn"
 
 [lints.rust]
 missing_copy_implementations = "warn"
