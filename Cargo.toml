@@ -8,6 +8,8 @@ documentation = "https://docs.rs/topological-sort"
 readme = "README.md"
 repository = "https://github.com/gifnksm/topological-sort-rs"
 license = "MIT OR Apache-2.0"
+keywords = ["dag", "dependency", "graph", "topological", "toposort"]
+categories = ["algorithms", "data-structures"]
 
 [package.metadata.cargo-sync-rdme.badge.badges]
 maintenance = true
