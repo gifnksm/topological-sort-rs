@@ -267,21 +267,44 @@ impl<T: fmt::Debug> fmt::Debug for TopologicalSort<T> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use quickcheck_macros::quickcheck;
 
     use super::*;
 
     #[test]
-    fn return_of_add_dependency() {
+    fn add_dependency_returns_true_if_new_dependency_link_created() {
         let mut ts = TopologicalSort::<&str>::new();
         assert!(ts.add_dependency("stone", "sharp"));
+        assert_eq!(ts.len(), 2);
         assert!(!ts.add_dependency("stone", "sharp"));
+        assert_eq!(ts.len(), 2);
+        assert!(ts.add_dependency("sharp", "paper"));
+        assert_eq!(ts.len(), 3);
+        assert!(!ts.add_dependency("sharp", "paper"));
+        assert_eq!(ts.len(), 3);
+        assert!(ts.add_dependency("paper", "stone"));
+        assert_eq!(ts.len(), 3);
+        assert!(!ts.add_dependency("paper", "stone"));
+        assert_eq!(ts.len(), 3);
+    }
+
+    #[test]
+    fn add_link_returns_true_if_new_dependency_link_created() {
+        let mut ts = TopologicalSort::<&str>::new();
+        assert!(ts.add_link(DependencyLink {
+            prec: "stone",
+            succ: "sharp",
+        }));
+        assert!(!ts.add_link(DependencyLink {
+            prec: "stone",
+            succ: "sharp",
+        }));
         assert_eq!(ts.len(), 2);
     }
 
     #[test]
-    fn from_iter() {
+    fn from_iter_makes_smaller_elements_precede_larger_ones() {
         let t = vec![4, 3, 3, 5, 7, 6, 8];
         let mut ts = TopologicalSort::<i32>::from_iter(t);
         assert_eq!(Some(3), ts.next());
@@ -294,7 +317,7 @@ mod test {
     }
 
     #[test]
-    fn iter() {
+    fn next_returns_elements_in_topological_order() {
         let mut ts = TopologicalSort::<i32>::new();
         ts.add_dependency(1, 2);
         ts.add_dependency(2, 3);
@@ -307,7 +330,7 @@ mod test {
     }
 
     #[test]
-    fn pop_all() {
+    fn pop_all_returns_all_currently_available_elements() {
         fn check(result: &[i32], ts: &mut TopologicalSort<i32>) {
             let l = ts.len();
             let mut v = ts.pop_all();
@@ -343,7 +366,7 @@ mod test {
     }
 
     #[test]
-    fn self_dependency() {
+    fn self_dependency_blocks_the_remaining_element() {
         let mut ts = TopologicalSort::<&str>::new();
         ts.add_dependency("stone", "sharp");
         ts.add_dependency("sharp", "sharp");
@@ -355,7 +378,7 @@ mod test {
     }
 
     #[test]
-    fn cyclic_deadlock() {
+    fn pop_returns_none_when_remaining_elements_are_cyclic() {
         let mut ts = TopologicalSort::new();
         ts.add_dependency("stone", "sharp");
 
@@ -370,7 +393,7 @@ mod test {
     }
 
     #[test]
-    fn cyclic_dependency_using_add_link() {
+    fn add_link_can_create_a_cycle_that_blocks_remaining_elements() {
         let mut ts = TopologicalSort::<&str>::new();
 
         ts.add_link(DependencyLink {
@@ -391,7 +414,7 @@ mod test {
     }
 
     #[quickcheck]
-    fn topo_test_quickcheck(n: usize, edges: Vec<(usize, usize)>) {
+    fn quickcheck_topological_sort_invariants(n: usize, edges: Vec<(usize, usize)>) {
         use std::collections::{HashMap, HashSet};
 
         let n = n.clamp(1, 1000);
