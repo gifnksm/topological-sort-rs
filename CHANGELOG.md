@@ -16,15 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * **(Breaking Change)** `TopologicalSort::add_dependency()` and `TopologicalSort::add_link()` now return `true` when they add a new dependency link and `false` when that link already existed.
-* **(Breaking Change)** Removed `impl From<(T, T)> for DependencyLink<T>`.
-  The tuple order was the inverse of `TopologicalSort::add_dependency(prec, succ)` and `DependencyLink { prec, succ }`, which made it easy to invert a dependency link by mistake.
-
-  Migrate tuple-based construction to explicit field names:
-
-  * Replace `ts.add_link((succ, prec).into())` with `ts.add_link(DependencyLink { prec, succ })`.
-  * Replace `DependencyLink::from((succ, prec))` with `DependencyLink { prec, succ }`.
-  * Replace `.map(DependencyLink::from)` on `(succ, prec)` tuples with `.map(|(succ, prec)| DependencyLink { prec, succ })`.
-
 * Raised the minimum supported Rust version to Rust 1.85.0.
 * Adjusted `TopologicalSort<T>` debug output to use a more collection-like representation of dependency relationships.
 * Added `#[must_use]` to `TopologicalSort::new()`, `len()`, `is_empty()`, `peek()`, and `peek_all()`, which may produce new warnings when their return values are ignored.
@@ -34,6 +25,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Split GitHub Actions automation into dedicated workflows in `.github/workflows/ci.yml`, `.github/workflows/cd.yml`, `.github/workflows/audit.yml`, and `.github/workflows/update-deps.yml`, updated `.github/dependabot.yml`, and expanded checks across Linux, macOS, and Windows.
   * Started tracking `Cargo.lock`.
   * Changed the repository's default branch from `master` to `main` and updated related automation and README badges.
+
+### Removed
+
+* **(Breaking Change)** Removed `impl From<(T, T)> for DependencyLink<T>`.
+  The tuple order was the inverse of `TopologicalSort::add_dependency(prec, succ)` and `DependencyLink { prec, succ }`, which made it easy to invert a dependency link by mistake.
+
+  Migration notes:
+
+  * Replace `ts.add_link((succ, prec).into())` with `ts.add_link(DependencyLink { prec, succ })`.
+  * Replace `DependencyLink::from((succ, prec))` with `DependencyLink { prec, succ }`.
+  * Replace `.map(DependencyLink::from)` on `(succ, prec)` tuples with `.map(|(succ, prec)| DependencyLink { prec, succ })`.
+
+* **(Breaking Change)** Removed `impl FromIterator<T> for TopologicalSort<T>`.
+  The implementation compared each item with all previously seen items using `partial_cmp()`, added dependency links for comparable pairs, and ignored equal or incomparable pairs, so the work grew as `n^2` with the length of the input iterator.
+  This was a poor fit for `collect()`: a call like `items.into_iter().collect::<TopologicalSort<_>>()` does not suggest pairwise comparison against all previously seen items or `n^2` work over the input.
+
+  Migration notes:
+
+  * There is no direct replacement for `items.into_iter().collect::<TopologicalSort<_>>()`.
+  * If `partial_cmp()` defines a total order for your values and you only needed to iterate them in order, collect them into a `Vec` and sort it directly instead of using `TopologicalSort`.
+  * If you intended to model dependency links, construct the graph explicitly with `TopologicalSort::new()` plus `insert()`, `add_dependency()`, and/or `add_link()`.
 
 ### Fixed
 

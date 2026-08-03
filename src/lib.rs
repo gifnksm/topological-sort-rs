@@ -3,7 +3,6 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 use std::{
-    cmp::Ordering,
     collections::{HashMap, HashSet, hash_map::Entry},
     fmt,
     hash::Hash,
@@ -213,32 +212,6 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     }
 }
 
-impl<T: PartialOrd + Eq + Hash + Clone> FromIterator<T> for TopologicalSort<T> {
-    fn from_iter<I>(iter: I) -> TopologicalSort<T>
-    where
-        I: IntoIterator<Item = T>,
-    {
-        let mut top = TopologicalSort::new();
-        let mut seen = Vec::<T>::default();
-        for item in iter {
-            top.insert(item.clone());
-            for seen_item in seen.iter().cloned() {
-                match seen_item.partial_cmp(&item) {
-                    Some(Ordering::Less) => {
-                        top.add_dependency(seen_item, item.clone());
-                    }
-                    Some(Ordering::Greater) => {
-                        top.add_dependency(item.clone(), seen_item);
-                    }
-                    _ => (),
-                }
-            }
-            seen.push(item);
-        }
-        top
-    }
-}
-
 /// A link between two items in a sort.
 #[derive(Copy, Clone, Debug)]
 pub struct DependencyLink<T> {
@@ -312,19 +285,6 @@ mod tests {
             succ: "sharp",
         }));
         assert_eq!(ts.len(), 2);
-    }
-
-    #[test]
-    fn from_iter_makes_smaller_elements_precede_larger_ones() {
-        let t = vec![4, 3, 3, 5, 7, 6, 8];
-        let mut ts = TopologicalSort::<i32>::from_iter(t);
-        assert_eq!(Some(3), ts.next());
-        assert_eq!(Some(4), ts.next());
-        assert_eq!(Some(5), ts.next());
-        assert_eq!(Some(6), ts.next());
-        assert_eq!(Some(7), ts.next());
-        assert_eq!(Some(8), ts.next());
-        assert_eq!(None, ts.next());
     }
 
     #[test]
