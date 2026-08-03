@@ -1,7 +1,7 @@
 [package]
 name = "topological-sort"
 version = "0.2.2"
-edition = "2018"
+edition = "2024"
 rust-version = "1.85.0"
 description = "Performs topological sorting."
 documentation = "https://docs.rs/topological-sort"
