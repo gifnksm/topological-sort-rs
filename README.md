@@ -1,14 +1,19 @@
-# topological-sort-rs
+<!-- cargo-sync-rdme title [[ -->
+# topological-sort
+<!-- cargo-sync-rdme ]] -->
+<!-- cargo-sync-rdme badge [[ -->
+[![Maintenance: passively-maintained](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg?)](https://doc.rust-lang.org/cargo/reference/manifest.html#the-badges-section)
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/topological-sort.svg?)](#license)
+[![crates.io](https://img.shields.io/crates/v/topological-sort.svg?logo=rust)](https://crates.io/crates/topological-sort)
+[![docs.rs](https://img.shields.io/docsrs/topological-sort.svg?logo=docs.rs)](https://docs.rs/topological-sort)
+[![Rust: ^1.85.0](https://img.shields.io/badge/rust-^1.85.0-93450a.svg?logo=rust)](https://doc.rust-lang.org/cargo/reference/manifest.html#the-rust-version-field)
+[![GitHub Actions: CI](https://img.shields.io/github/actions/workflow/status/gifnksm/topological-sort-rs/ci.yml.svg?label=CI&logo=github)](https://github.com/gifnksm/topological-sort-rs/actions/workflows/ci.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/gifnksm/topological-sort-rs.svg?label=codecov&logo=codecov)](https://codecov.io/gh/gifnksm/topological-sort-rs)
+<!-- cargo-sync-rdme ]] -->
 
-[![maintenance status: passively-maintained](https://img.shields.io/badge/maintenance-passively--maintained-yellowgreen.svg)](https://doc.rust-lang.org/cargo/reference/manifest.html#the-badges-section)
-[![license](https://img.shields.io/crates/l/topological-sort.svg)](#license)
-[![crates.io](https://img.shields.io/crates/v/topological-sort.svg)](https://crates.io/crates/topological-sort)
-[![docs.rs](https://img.shields.io/docsrs/topological-sort/latest)](https://docs.rs/topological-sort/latest/)
-[![rust 1.85.0+ badge](https://img.shields.io/badge/rust-1.85.0+-93450a.svg)](https://doc.rust-lang.org/cargo/reference/manifest.html#the-rust-version-field)
-[![Rust CI](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml/badge.svg)](https://github.com/gifnksm/topological-sort-rs/actions/workflows/rust-ci.yml)
-[![Codecov](https://codecov.io/gh/gifnksm/topological-sort-rs/branch/master/graph/badge.svg?token=VreVOoM3Yb)](https://codecov.io/gh/gifnksm/topological-sort-rs)
-
+<!-- cargo-sync-rdme rustdoc [[ -->
 Performs topological sorting.
+<!-- cargo-sync-rdme ]] -->
 
 [Documentation](https://docs.rs/topological-sort)
 

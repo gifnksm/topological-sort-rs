@@ -19,11 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Raised the minimum supported Rust version to Rust 1.85.0 and updated CI to test against it, in line with the project's 0.x MSRV policy.
 * Updated project maintenance and tooling.
   * Added regression tests covering self-dependencies and cycles created with `DependencyLink`.
-  * Added Markdown lint configuration.
-  * Moved `cargo-release` configuration into `release.toml`.
-  * Moved Rust and Clippy lint configuration from crate attributes into `Cargo.toml`.
-  * Started tracking `Cargo.lock` in the repository.
-  * Updated CI actions and development dependencies.
+  * Added repository-wide configuration in `.editorconfig`, `.gitattributes`, `.markdownlintignore`, `codecov.yml`, `deny.toml`, and `justfile`, expanded Cargo metadata in `Cargo.toml` for linting and README synchronization, and moved release automation into `release.toml`.
+  * Split GitHub Actions automation into dedicated workflows in `.github/workflows/ci.yml`, `.github/workflows/cd.yml`, `.github/workflows/audit.yml`, and `.github/workflows/update-deps.yml`, updated `.github/dependabot.yml`, and expanded checks across Linux, macOS, and Windows.
+  * Started tracking `Cargo.lock`.
+  * Changed the repository's default branch from `master` to `main` and updated related automation and README badges.
 
 ### Fixed
 

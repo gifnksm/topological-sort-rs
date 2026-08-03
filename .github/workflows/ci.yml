@@ -1,0 +1,354 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions: {}
+
+jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.set-values.outputs.rust }}
+      os: ${{ steps.set-values.outputs.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Set matrix values
+        id: set-values
+        run: |
+          root_package_id="$(cargo metadata --format-version 1 | jq -cr '.resolve.root')"
+          root_package="$(cargo metadata --format-version 1 | jq -c --arg pkgid "${root_package_id}" '.packages[] | select(.id == $pkgid)')"
+          echo "${root_package}" | jq -c '{ root_package: .name }'
+
+          msrv="$(echo "${root_package}" | jq '.rust_version')"
+          rust="$(echo "[\"stable\", ${msrv}]" | jq -c)"
+          echo "rust=${rust}" >> "$GITHUB_OUTPUT"
+
+          os="$(echo '["ubuntu-latest", "macos-latest", "windows-latest"]' | jq -c)"
+          echo "os=${os}" >> "$GITHUB_OUTPUT"
+
+          jq -n --argjson rust "${rust}" --argjson os "${os}" '{ rust: $rust, os: $os }'
+        shell: bash
+
+  rustfmt:
+    name: Rustfmt
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [stable]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just
+      - run: just ci-rustfmt
+        shell: bash
+
+  check:
+    name: Check
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: ${{ fromJSON(needs.set-matrix.outputs.rust) }}
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-hack
+      - uses: Swatinem/rust-cache@v2
+      - run: just ci-check
+        shell: bash
+
+  clippy:
+    name: Clippy
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [stable]
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-hack
+      - uses: Swatinem/rust-cache@v2
+      - run: just ci-clippy
+        shell: bash
+
+  rustdoc:
+    name: Rustdoc
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [stable]
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-hack
+      - uses: Swatinem/rust-cache@v2
+      - run: just ci-rustdoc
+        shell: bash
+
+  docs-rs:
+    name: Docs.rs
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [nightly]
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-hack,cargo-docs-rs
+      - uses: Swatinem/rust-cache@v2
+      - run: just ci-docs-rs
+        shell: bash
+
+  sync-rdme:
+    name: Sync Readme
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [stable]
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-hack,cargo-sync-rdme
+      - uses: Swatinem/rust-cache@v2
+      - run: rustup toolchain install nightly --profile minimal
+        shell: bash
+      - run: just ci-sync-rdme
+        shell: bash
+
+  machete:
+    name: Machete
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [stable]
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-machete
+      - uses: Swatinem/rust-cache@v2
+      - run: just ci-machete
+        shell: bash
+
+  test:
+    name: Test
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: ${{ fromJSON(needs.set-matrix.outputs.rust) }}
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-hack
+      - run: just ci-test
+        shell: bash
+
+  coverage:
+    name: Coverage (test)
+    needs: set-matrix
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [stable]
+        os: ${{ fromJSON(needs.set-matrix.outputs.os) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,cargo-llvm-cov
+      - run: just ci-coverage
+        shell: bash
+      - uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/codecov.json
+          fail_ci_if_error: false
+
+  release-dry-run:
+    name: Release dry run
+    strategy:
+      fail-fast: true
+      matrix:
+        rust: [stable]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: cargo-release,just
+      - run: cargo release patch -vv --allow-branch '*'
+        shell: bash
+
+  actionlint:
+    name: Actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just
+      - name: Install actionlint
+        run: bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) && sudo mv actionlint /usr/local/bin/
+        shell: bash
+      - run: |
+          echo "::add-matcher::.github/actionlint-matcher.json"
+          just ci-actionlint
+
+  typos:
+    name: Typos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just,typos
+      - run: just ci-typos
+
+  markdownlint:
+    name: Markdownlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just
+      - run: just ci-markdownlint
+
+  editorconfig:
+    name: EditorConfig
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just
+      - uses: editorconfig-checker/action-editorconfig-checker@v2.2.0
+      - run: just ci-editorconfig -format github-actions
+
+  tombi:
+    name: Tombi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: taiki-e/install-action@v2.85.5
+        with:
+          tool: just
+      - run: just ci-tombi-format
+        shell: bash
+      - run: just ci-tombi-lint
+        shell: bash
+
+  ci-complete:
+    needs:
+      - set-matrix
+      - rustfmt
+      - check
+      - clippy
+      - rustdoc
+      - docs-rs
+      - sync-rdme
+      - machete
+      - test
+      - coverage
+      - release-dry-run
+      - actionlint
+      - typos
+      - markdownlint
+      - editorconfig
+      - tombi
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: CI complete
+        run: |
+          if ${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}; then
+            echo "CI succeeded"
+          else
+            echo "CI failed"
+            exit 1
+          fi
+        shell: bash
