@@ -16,7 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * **(Breaking Change)** `TopologicalSort::add_dependency()` and `TopologicalSort::add_link()` now return `true` when they add a new edge and `false` when the edge already existed.
-* Raised the minimum supported Rust version to Rust 1.85.0 and updated CI to test against it, in line with the project's 0.x MSRV policy.
+* **(Breaking Change)** Removed `impl From<(T, T)> for DependencyLink<T>`.
+  The tuple order was the inverse of `TopologicalSort::add_dependency(prec,
+  succ)` and `DependencyLink { prec, succ }`, which made it easy to invert an
+  edge by mistake.
+
+  Migrate tuple-based construction to explicit field names:
+  * Replace `ts.add_link((succ, prec).into())` with
+    `ts.add_link(DependencyLink { prec, succ })`.
+  * Replace `DependencyLink::from((succ, prec))` with
+    `DependencyLink { prec, succ }`.
+  * Replace `.map(DependencyLink::from)` on `(succ, prec)` tuples with
+    `.map(|(succ, prec)| DependencyLink { prec, succ })`.
+* Raised the minimum supported Rust version to Rust 1.85.0.
 * Updated project maintenance and tooling.
   * Added regression tests covering self-dependencies and cycles created with `DependencyLink`.
   * Added repository-wide configuration in `.editorconfig`, `.gitattributes`, `.markdownlintignore`, `codecov.yml`, `deny.toml`, and `justfile`, expanded Cargo metadata in `Cargo.toml` for linting and README synchronization, and moved release automation into `release.toml`.

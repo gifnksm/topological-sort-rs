@@ -95,10 +95,8 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
         P: Into<T>,
         S: Into<T>,
     {
-        self.add_dependency_impl(prec.into(), succ.into())
-    }
-
-    fn add_dependency_impl(&mut self, prec: T, succ: T) -> bool {
+        let prec = prec.into();
+        let succ = succ.into();
         match self.top.entry(prec) {
             Entry::Vacant(e) => {
                 let mut dep = Dependency::new();
@@ -240,15 +238,6 @@ pub struct DependencyLink<T> {
     pub prec: T,
     /// The element which depends on `prec`.
     pub succ: T,
-}
-
-impl<T> From<(T, T)> for DependencyLink<T> {
-    fn from(tuple: (T, T)) -> Self {
-        DependencyLink {
-            succ: tuple.0,
-            prec: tuple.1,
-        }
-    }
 }
 
 impl<T: Eq + Hash + Clone> FromIterator<DependencyLink<T>> for TopologicalSort<T> {
