@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Implemented `Extend<DependencyLink<T>>` for `TopologicalSort<T>`, allowing dependency links to be appended with `extend()`.
 * Added `CHANGELOG.md`.
 
 ### Changed
