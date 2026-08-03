@@ -1,18 +1,14 @@
-// Copyright 2016 topological-sort-rs Developers
-//
-// Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
-// https://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
-// https://opensource.org/licenses/MIT>, at your option. This file may not be
-// copied, modified, or distributed except according to those terms.
-#![cfg_attr(docsrs, feature(doc_cfg))]
 //! Performs topological sorting.
 
-use std::cmp::Ordering;
-use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet};
-use std::fmt;
-use std::hash::Hash;
-use std::iter::FromIterator;
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
+use std::{
+    cmp::Ordering,
+    collections::{hash_map::Entry, HashMap, HashSet},
+    fmt,
+    hash::Hash,
+    iter::FromIterator,
+};
 
 #[derive(Clone)]
 struct Dependency<T> {
@@ -47,22 +43,29 @@ impl<T: Hash + Eq + Clone> TopologicalSort<T> {
     /// Creates new empty `TopologicalSort`.
     ///
     /// ```rust
-    /// # extern crate topological_sort;
-    /// # fn main() {
     /// use topological_sort::TopologicalSort;
+    ///
     /// let mut ts = TopologicalSort::<&str>::new();
     /// ts.add_dependency("hello_world.o", "hello_world");
     /// ts.add_dependency("hello_world.c", "hello_world");
     /// ts.add_dependency("stdio.h", "hello_world.o");
     /// ts.add_dependency("glibc.so", "hello_world");
-    /// assert_eq!(vec!["glibc.so", "hello_world.c", "stdio.h"],
-    ///            { let mut v = ts.pop_all(); v.sort(); v });
-    /// assert_eq!(vec!["hello_world.o"],
-    ///            { let mut v = ts.pop_all(); v.sort(); v });
-    /// assert_eq!(vec!["hello_world"],
-    ///            { let mut v = ts.pop_all(); v.sort(); v });
+    /// assert_eq!(vec!["glibc.so", "hello_world.c", "stdio.h"], {
+    ///     let mut v = ts.pop_all();
+    ///     v.sort();
+    ///     v
+    /// });
+    /// assert_eq!(vec!["hello_world.o"], {
+    ///     let mut v = ts.pop_all();
+    ///     v.sort();
+    ///     v
+    /// });
+    /// assert_eq!(vec!["hello_world"], {
+    ///     let mut v = ts.pop_all();
+    ///     v.sort();
+    ///     v
+    /// });
     /// assert!(ts.pop_all().is_empty());
-    /// # }
     /// ```
     #[inline]
     pub fn new() -> TopologicalSort<T> {
@@ -280,9 +283,9 @@ impl<T: fmt::Debug + Hash + Eq + Clone> fmt::Debug for TopologicalSort<T> {
 
 #[cfg(test)]
 mod test {
-    use super::{DependencyLink, TopologicalSort};
     use quickcheck_macros::quickcheck;
-    use std::iter::FromIterator;
+
+    use super::*;
 
     #[test]
     fn return_of_add_dependency() {
