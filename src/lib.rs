@@ -10,17 +10,17 @@ use std::{
 };
 
 #[derive(Clone, Debug)]
-struct Dependency<T> {
+struct Node<T> {
     num_prec: usize,
     succ: HashSet<T>,
 }
 
-impl<T> Dependency<T>
+impl<T> Node<T>
 where
     T: Hash + Eq,
 {
-    fn new() -> Dependency<T> {
-        Dependency {
+    fn new() -> Node<T> {
+        Node {
             num_prec: 0,
             succ: HashSet::new(),
         }
@@ -30,20 +30,20 @@ where
 /// Performs topological sorting.
 #[derive(Clone)]
 pub struct TopologicalSort<T> {
-    top: HashMap<T, Dependency<T>>,
+    nodes: HashMap<T, Node<T>>,
 }
 
 impl<T> Default for TopologicalSort<T> {
     fn default() -> TopologicalSort<T> {
         TopologicalSort {
-            top: HashMap::new(),
+            nodes: HashMap::new(),
         }
     }
 }
 
 impl<T> TopologicalSort<T>
 where
-    T: Hash + Eq + Clone,
+    T: Clone + Eq + Hash,
 {
     /// Creates new empty `TopologicalSort`.
     ///
@@ -82,14 +82,14 @@ where
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
-        self.top.len()
+        self.nodes.len()
     }
 
     /// Returns true if the `TopologicalSort` contains no elements.
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.top.is_empty()
+        self.nodes.is_empty()
     }
 
     /// Registers the two elements' dependency.
@@ -105,9 +105,9 @@ where
     {
         let prec = prec.into();
         let succ = succ.into();
-        match self.top.entry(prec) {
+        match self.nodes.entry(prec) {
             Entry::Vacant(e) => {
-                let mut dep = Dependency::new();
+                let mut dep = Node::new();
                 dep.succ.insert(succ.clone());
                 e.insert(dep);
             }
@@ -119,9 +119,9 @@ where
             }
         }
 
-        match self.top.entry(succ) {
+        match self.nodes.entry(succ) {
             Entry::Vacant(e) => {
-                let mut dep = Dependency::new();
+                let mut dep = Node::new();
                 dep.num_prec += 1;
                 e.insert(dep);
             }
@@ -146,9 +146,9 @@ where
     where
         U: Into<T>,
     {
-        match self.top.entry(elt.into()) {
+        match self.nodes.entry(elt.into()) {
             Entry::Vacant(e) => {
-                let dep = Dependency::new();
+                let dep = Node::new();
                 e.insert(dep);
                 true
             }
@@ -197,7 +197,7 @@ where
     /// If `pop_all` returns an empty vector and `len` is not 0, there is cyclic dependencies.
     pub fn pop_all(&mut self) -> Vec<T> {
         let keys = self
-            .top
+            .nodes
             .iter()
             .filter(|&(_, v)| v.num_prec == 0)
             .map(|(k, _)| k.clone())
@@ -212,7 +212,7 @@ where
     /// there is no such item.
     #[must_use]
     pub fn peek(&self) -> Option<&T> {
-        self.top
+        self.nodes
             .iter()
             .filter(|&(_, v)| v.num_prec == 0)
             .map(|(k, _)| k)
@@ -223,18 +223,18 @@ where
     /// empty vector if there are no such items.
     #[must_use]
     pub fn peek_all(&self) -> Vec<&T> {
-        self.top
+        self.nodes
             .iter()
             .filter(|&(_, v)| v.num_prec == 0)
             .map(|(k, _)| k)
             .collect::<Vec<_>>()
     }
 
-    fn remove(&mut self, prec: &T) -> Option<Dependency<T>> {
-        let result = self.top.remove(prec);
+    fn remove(&mut self, prec: &T) -> Option<Node<T>> {
+        let result = self.nodes.remove(prec);
         if let Some(ref p) = result {
             for s in &p.succ {
-                if let Some(y) = self.top.get_mut(s) {
+                if let Some(y) = self.nodes.get_mut(s) {
                     y.num_prec -= 1;
                 }
             }
@@ -254,21 +254,21 @@ pub struct DependencyLink<T> {
 
 impl<T> FromIterator<DependencyLink<T>> for TopologicalSort<T>
 where
-    T: Eq + Hash + Clone,
+    T: Clone + Eq + Hash,
 {
     fn from_iter<I>(iter: I) -> TopologicalSort<T>
     where
         I: IntoIterator<Item = DependencyLink<T>>,
     {
-        let mut top = TopologicalSort::new();
-        top.extend(iter);
-        top
+        let mut ts = TopologicalSort::new();
+        ts.extend(iter);
+        ts
     }
 }
 
 impl<T> Extend<DependencyLink<T>> for TopologicalSort<T>
 where
-    T: Eq + Hash + Clone,
+    T: Clone + Eq + Hash,
 {
     fn extend<I>(&mut self, iter: I)
     where
@@ -312,7 +312,7 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_map()
-            .entries(self.top.iter().map(|(k, dep)| (k, &dep.succ)))
+            .entries(self.nodes.iter().map(|(k, dep)| (k, &dep.succ)))
             .finish()
     }
 }
