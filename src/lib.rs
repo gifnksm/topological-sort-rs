@@ -167,6 +167,10 @@ where
             succ: HashSet::new(),
         }
     }
+
+    fn is_ready(&self) -> bool {
+        self.num_prec == 0
+    }
 }
 
 /// A data structure for topological sorting.
@@ -238,30 +242,13 @@ where
     {
         let prec = prec.into();
         let succ = succ.into();
-        match self.nodes.entry(prec) {
-            Entry::Vacant(e) => {
-                let mut dep = Node::new();
-                dep.succ.insert(succ.clone());
-                e.insert(dep);
-            }
-            Entry::Occupied(e) => {
-                if !e.into_mut().succ.insert(succ.clone()) {
-                    // Already registered
-                    return false;
-                }
-            }
-        }
 
-        match self.nodes.entry(succ) {
-            Entry::Vacant(e) => {
-                let mut dep = Node::new();
-                dep.num_prec += 1;
-                e.insert(dep);
-            }
-            Entry::Occupied(e) => {
-                e.into_mut().num_prec += 1;
-            }
+        let prec_node = self.nodes.entry(prec).or_insert_with(Node::new);
+        if !prec_node.succ.insert(succ.clone()) {
+            // Already registered
+            return false;
         }
+        self.nodes.entry(succ).or_insert_with(Node::new).num_prec += 1;
         true
     }
 
@@ -308,8 +295,7 @@ where
     {
         match self.nodes.entry(item.into()) {
             Entry::Vacant(e) => {
-                let dep = Node::new();
-                e.insert(dep);
+                e.insert(Node::new());
                 true
             }
             Entry::Occupied(_) => false,
@@ -332,9 +318,13 @@ where
     /// assert_eq!(ts.pop(), None);
     /// ```
     pub fn pop(&mut self) -> Option<T> {
-        self.peek().cloned().inspect(|key| {
-            self.remove_node(key);
-        })
+        let (item, node) = self.nodes.extract_if(|_, node| node.is_ready()).next()?;
+        for succ in node.succ {
+            if let Some(succ_node) = self.nodes.get_mut(&succ) {
+                succ_node.num_prec -= 1;
+            }
+        }
+        Some(item)
     }
 
     /// Returns an iterator that repeatedly calls [`pop`](Self::pop).
@@ -386,16 +376,18 @@ where
     /// assert_eq!(ts.pop_batch(), vec![3]);
     /// ```
     pub fn pop_batch(&mut self) -> Vec<T> {
-        let keys = self
+        let (items, nodes) = self
             .nodes
-            .iter()
-            .filter(|&(_, v)| v.num_prec == 0)
-            .map(|(k, _)| k.clone())
-            .collect::<Vec<_>>();
-        for k in &keys {
-            self.remove_node(k);
+            .extract_if(|_, node| node.is_ready())
+            .collect::<(Vec<_>, Vec<_>)>();
+        for node in nodes {
+            for succ in node.succ {
+                if let Some(succ_node) = self.nodes.get_mut(&succ) {
+                    succ_node.num_prec -= 1;
+                }
+            }
         }
-        keys
+        items
     }
 
     /// Returns a reference to one item that does not depend on any other remaining item, or
@@ -415,8 +407,8 @@ where
     pub fn peek(&self) -> Option<&T> {
         self.nodes
             .iter()
-            .filter(|&(_, v)| v.num_prec == 0)
-            .map(|(k, _)| k)
+            .filter(|&(_, node)| node.is_ready())
+            .map(|(item, _)| item)
             .next()
     }
 
@@ -441,8 +433,8 @@ where
     pub fn peek_batch(&self) -> Vec<&T> {
         self.nodes
             .iter()
-            .filter(|&(_, v)| v.num_prec == 0)
-            .map(|(k, _)| k)
+            .filter(|&(_, node)| node.is_ready())
+            .map(|(item, _)| item)
             .collect::<Vec<_>>()
     }
 
@@ -469,33 +461,17 @@ where
         T: Borrow<Q>,
         Q: Eq + Hash + ?Sized,
     {
-        let item_node = self.nodes.get(item)?;
-        if item_node.num_prec != 0 {
+        let node = self.nodes.get(item)?;
+        if !node.is_ready() {
             return None;
         }
-        let (item, _) = self.remove_node(item)?;
-        Some(item)
-    }
-
-    fn remove_node<Q>(&mut self, item: &Q) -> Option<(T, Node<T>)>
-    where
-        T: Borrow<Q>,
-        Q: Eq + Hash + ?Sized,
-    {
-        let (item, item_node) = self.nodes.remove_entry(item)?;
-        // `remove_node` updates only the removed node's successors. Callers must ensure the node
-        // has no remaining predecessors, or predecessor nodes would retain stale links to it and
-        // break the internal invariants.
-        debug_assert_eq!(
-            item_node.num_prec, 0,
-            "remove_node assumes the removed item has no predecessors"
-        );
-        for succ in &item_node.succ {
+        let (item, node) = self.nodes.remove_entry(item)?;
+        for succ in node.succ {
             if let Some(succ_node) = self.nodes.get_mut(succ.borrow()) {
                 succ_node.num_prec -= 1;
             }
         }
-        Some((item, item_node))
+        Some(item)
     }
 }
 
