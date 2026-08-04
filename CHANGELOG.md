@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Implemented `Extend<DependencyLink<T>>` for `TopologicalSort<T>`, allowing dependency links to be appended with `extend()`.
 * Added `TopologicalSort::pop_iter()`, which returns a `PopIter<'_, T>` that repeatedly calls `pop()`.
+* Added `TopologicalSort::remove()`, which removes a specified item only when it has no remaining dependencies.
 * Added `CHANGELOG.md`.
 
 ### Changed

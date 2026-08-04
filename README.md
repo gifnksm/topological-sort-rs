@@ -12,7 +12,22 @@
 <!-- cargo-sync-rdme ]] -->
 
 <!-- cargo-sync-rdme rustdoc [[ -->
-Performs topological sorting.
+A data structure for topological sorting.
+
+## Examples
+
+### Modeling Makefile-style dependencies
+
+This example reproduces a small `Makefile`. Each call to [`TopologicalSort::pop_batch`](https://docs.rs/topological-sort/0.2.2/topological_sort/TopologicalSort/fn.pop_batch.html)
+returns the next batch of files that can be built in parallel.
+
+````Makefile
+hello_world: hello_world.o libhello.so
+        gcc -o hello_world hello_world.o -lhello
+
+hello_world.o: hello_world.c hello.h
+        gcc -c -o hello_world.o hello_world.c
+````
 
 ````rust
 use topological_sort::TopologicalSort;
@@ -20,23 +35,118 @@ use topological_sort::TopologicalSort;
 let mut ts = TopologicalSort::<&str>::new();
 
 ts.add_dependency("hello_world.o", "hello_world");
+ts.add_dependency("libhello.so", "hello_world");
 ts.add_dependency("hello_world.c", "hello_world.o");
-ts.add_dependency("stdio.h", "hello_world.o");
-ts.add_dependency("glibc.so", "hello_world");
+ts.add_dependency("hello.h", "hello_world.o");
 
+// Source inputs with no remaining dependencies are ready first.
 let mut first_group = ts.pop_batch();
 first_group.sort();
-assert_eq!(first_group, ["glibc.so", "hello_world.c", "stdio.h"]);
+assert_eq!(first_group, ["hello.h", "hello_world.c", "libhello.so"]);
 
+// Building those inputs makes the object file ready.
 let mut second_group = ts.pop_batch();
 second_group.sort();
 assert_eq!(second_group, ["hello_world.o"]);
 
+// Finally, the executable itself becomes ready.
 let mut third_group = ts.pop_batch();
 third_group.sort();
 assert_eq!(third_group, ["hello_world"]);
 
 assert!(ts.pop_batch().is_empty());
+````
+
+### Detecting circular dependencies
+
+This example consumes a sort by repeatedly popping ready items. If any items remain afterward,
+the remaining subgraph contains a cycle.
+
+````rust
+use topological_sort::TopologicalSort;
+
+fn has_circular_dependency(mut ts: TopologicalSort<&str>) -> bool {
+    // Remove every item that can be processed.
+    ts.pop_iter().for_each(drop);
+    // Any remaining items must be blocked by a cycle.
+    !ts.is_empty()
+}
+
+let mut ts1 = TopologicalSort::<&str>::new();
+ts1.add_dependency("scissors", "rock");
+ts1.add_dependency("paper", "scissors");
+ts1.add_dependency("rock", "paper");
+
+let mut ts2 = TopologicalSort::<&str>::new();
+ts2.add_dependency("grass", "zebra");
+ts2.add_dependency("zebra", "lion");
+
+assert!(has_circular_dependency(ts1));
+assert!(!has_circular_dependency(ts2));
+````
+
+### Processing items one at a time
+
+This example repeatedly calls [`TopologicalSort::pop`](https://docs.rs/topological-sort/0.2.2/topological_sort/TopologicalSort/fn.pop.html) to process items as soon as each next
+item becomes ready.
+
+````rust
+use topological_sort::TopologicalSort;
+
+let mut ts = TopologicalSort::<&str>::new();
+ts.add_dependency("parse", "analyze");
+ts.add_dependency("analyze", "compile");
+
+while let Some(item) = ts.pop() {
+    process(item);
+}
+
+````
+
+### Using `TopologicalSort` in a task scheduler
+
+[`TopologicalSort`](https://docs.rs/topological-sort/0.2.2/topological_sort/struct.TopologicalSort.html) can serve as the dependency tracker inside a task
+scheduler. [`TopologicalSort::peek_batch`](https://docs.rs/topological-sort/0.2.2/topological_sort/TopologicalSort/fn.peek_batch.html) returns all tasks whose
+prerequisites are satisfied, and [`TopologicalSort::remove`](https://docs.rs/topological-sort/0.2.2/topological_sort/TopologicalSort/fn.remove.html) marks a
+completed task as done, which may make more tasks ready.
+
+Because [`TopologicalSort::peek_batch`](https://docs.rs/topological-sort/0.2.2/topological_sort/TopologicalSort/fn.peek_batch.html) does not remove tasks, a scheduler
+also needs to track which ready tasks are already running so it does not
+start them twice.
+
+````rust
+use std::collections::HashSet;
+
+use topological_sort::TopologicalSort;
+
+type Task = String;
+
+fn run_scheduler(tasks: TopologicalSort<Task>) {
+    let mut remaining_tasks = tasks;
+    let mut running_tasks = HashSet::new();
+
+    while !remaining_tasks.is_empty() {
+        // `peek_batch()` returns every task whose prerequisites are
+        // satisfied, including tasks that are already running.
+        let runnable_or_running_tasks = remaining_tasks.peek_batch();
+
+        let runnable_tasks = runnable_or_running_tasks
+            .into_iter()
+            .cloned()
+            .filter(|task| !running_tasks.contains(task))
+            .collect::<Vec<Task>>();
+
+        if !runnable_tasks.is_empty() {
+            start_tasks(&runnable_tasks);
+            running_tasks.extend(runnable_tasks);
+        }
+
+        // Wait for one running task to finish, then mark it complete.
+        let completed_task = wait_for_task_completion(&running_tasks);
+        remaining_tasks.remove(&completed_task);
+        running_tasks.remove(&completed_task);
+    }
+}
 ````
 <!-- cargo-sync-rdme ]] -->
 
