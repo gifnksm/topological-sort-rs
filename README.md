@@ -13,6 +13,31 @@
 
 <!-- cargo-sync-rdme rustdoc [[ -->
 Performs topological sorting.
+
+````rust
+use topological_sort::TopologicalSort;
+
+let mut ts = TopologicalSort::<&str>::new();
+
+ts.add_dependency("hello_world.o", "hello_world");
+ts.add_dependency("hello_world.c", "hello_world.o");
+ts.add_dependency("stdio.h", "hello_world.o");
+ts.add_dependency("glibc.so", "hello_world");
+
+let mut first_group = ts.pop_batch();
+first_group.sort();
+assert_eq!(first_group, ["glibc.so", "hello_world.c", "stdio.h"]);
+
+let mut second_group = ts.pop_batch();
+second_group.sort();
+assert_eq!(second_group, ["hello_world.o"]);
+
+let mut third_group = ts.pop_batch();
+third_group.sort();
+assert_eq!(third_group, ["hello_world"]);
+
+assert!(ts.pop_batch().is_empty());
+````
 <!-- cargo-sync-rdme ]] -->
 
 [Documentation](https://docs.rs/topological-sort)

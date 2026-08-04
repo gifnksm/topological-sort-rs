@@ -1,4 +1,29 @@
 //! Performs topological sorting.
+//!
+//! ```rust
+//! use topological_sort::TopologicalSort;
+//!
+//! let mut ts = TopologicalSort::<&str>::new();
+//!
+//! ts.add_dependency("hello_world.o", "hello_world");
+//! ts.add_dependency("hello_world.c", "hello_world.o");
+//! ts.add_dependency("stdio.h", "hello_world.o");
+//! ts.add_dependency("glibc.so", "hello_world");
+//!
+//! let mut first_group = ts.pop_batch();
+//! first_group.sort();
+//! assert_eq!(first_group, ["glibc.so", "hello_world.c", "stdio.h"]);
+//!
+//! let mut second_group = ts.pop_batch();
+//! second_group.sort();
+//! assert_eq!(second_group, ["hello_world.o"]);
+//!
+//! let mut third_group = ts.pop_batch();
+//! third_group.sort();
+//! assert_eq!(third_group, ["hello_world"]);
+//!
+//! assert!(ts.pop_batch().is_empty());
+//! ```
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
@@ -28,6 +53,8 @@ where
 }
 
 /// Performs topological sorting.
+///
+/// See the [crate-level documentation](crate) for examples.
 #[derive(Clone)]
 pub struct TopologicalSort<T> {
     nodes: HashMap<T, Node<T>>,
@@ -45,59 +72,35 @@ impl<T> TopologicalSort<T>
 where
     T: Clone + Eq + Hash,
 {
-    /// Creates new empty `TopologicalSort`.
+    /// Creates a new empty `TopologicalSort`.
     ///
-    /// ```rust
-    /// use topological_sort::TopologicalSort;
-    ///
-    /// let mut ts = TopologicalSort::<&str>::new();
-    /// ts.add_dependency("hello_world.o", "hello_world");
-    /// ts.add_dependency("hello_world.c", "hello_world");
-    /// ts.add_dependency("stdio.h", "hello_world.o");
-    /// ts.add_dependency("glibc.so", "hello_world");
-    /// assert_eq!(vec!["glibc.so", "hello_world.c", "stdio.h"], {
-    ///     let mut v = ts.pop_batch();
-    ///     v.sort();
-    ///     v
-    /// });
-    /// assert_eq!(vec!["hello_world.o"], {
-    ///     let mut v = ts.pop_batch();
-    ///     v.sort();
-    ///     v
-    /// });
-    /// assert_eq!(vec!["hello_world"], {
-    ///     let mut v = ts.pop_batch();
-    ///     v.sort();
-    ///     v
-    /// });
-    /// assert!(ts.pop_batch().is_empty());
-    /// ```
+    /// See the [crate-level documentation](crate) for examples.
     #[inline]
     #[must_use]
-    pub fn new() -> TopologicalSort<T> {
+    pub fn new() -> Self {
         Self::default()
     }
 
-    /// Returns the number of elements in the `TopologicalSort`.
+    /// Returns the number of items in the `TopologicalSort`.
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
         self.nodes.len()
     }
 
-    /// Returns true if the `TopologicalSort` contains no elements.
+    /// Returns true if the `TopologicalSort` contains no items.
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
 
-    /// Registers the two elements' dependency.
+    /// Registers a dependency between two items.
     ///
     /// # Arguments
     ///
-    /// * `prec` - The element appears before `succ`. `prec` is depended on by `succ`.
-    /// * `succ` - The element appears after `prec`. `succ` depends on `prec`.
+    /// * `prec` - The item that appears before `succ` and is depended on by it.
+    /// * `succ` - The item that appears after `prec` and depends on it.
     pub fn add_dependency<P, S>(&mut self, prec: P, succ: S) -> bool
     where
         P: Into<T>,
@@ -137,16 +140,16 @@ where
         self.add_dependency(link.prec, link.succ)
     }
 
-    /// Inserts an element, without adding any dependencies from or to it.
+    /// Inserts an item, without adding any dependencies from or to it.
     ///
-    /// If the `TopologicalSort` did not have this element present, `true` is returned.
+    /// If the `TopologicalSort` did not have this item present, `true` is returned.
     ///
-    /// If the `TopologicalSort` already had this element present, `false` is returned.
-    pub fn insert<U>(&mut self, elt: U) -> bool
+    /// If the `TopologicalSort` already had this item present, `false` is returned.
+    pub fn insert<U>(&mut self, item: U) -> bool
     where
         U: Into<T>,
     {
-        match self.nodes.entry(elt.into()) {
+        match self.nodes.entry(item.into()) {
             Entry::Vacant(e) => {
                 let dep = Node::new();
                 e.insert(dep);
@@ -250,12 +253,12 @@ where
     }
 }
 
-/// A link between two items in a sort.
+/// A dependency link between two items in a sort.
 #[derive(Copy, Clone, Debug)]
 pub struct DependencyLink<T> {
-    /// The element which is depended upon by `succ`.
+    /// The item that `succ` depends on.
     pub prec: T,
-    /// The element which depends on `prec`.
+    /// The item that depends on `prec`.
     pub succ: T,
 }
 
