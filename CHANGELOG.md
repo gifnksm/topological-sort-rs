@@ -30,12 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * Replace `ts.pop_all()` with `ts.pop_batch()`.
     * Replace `ts.peek_all()` with `ts.peek_batch()`.
     * If you intended to keep popping until no more progress is possible, use `ts.pop_iter()` instead, for example `let items: Vec<_> = ts.pop_iter().collect();`.
-* Updated project maintenance and tooling.
-  * Added regression tests covering self-dependencies and cycles created with `DependencyLink`.
-  * Added repository-wide configuration in `.editorconfig`, `.gitattributes`, `.markdownlintignore`, `codecov.yml`, `deny.toml`, and `justfile`, expanded Cargo metadata in `Cargo.toml` for linting and README synchronization, tightened the Clippy configuration with additional `cargo` and `restriction` lints, and moved release automation into `release.toml`.
-  * Split GitHub Actions automation into dedicated workflows in `.github/workflows/ci.yml`, `.github/workflows/cd.yml`, `.github/workflows/audit.yml`, and `.github/workflows/update-deps.yml`, updated `.github/dependabot.yml`, and expanded checks across Linux, macOS, and Windows.
-  * Started tracking `Cargo.lock`.
-  * Changed the repository's default branch from `master` to `main` and updated related automation and README badges.
 
 ### Removed
 
@@ -66,10 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * Replace `ts.next()` with `ts.pop()` when consuming one item at a time.
     * Replace iteration through `TopologicalSort` itself with `ts.pop_iter()`.
     * Replace direct iterator adapter calls on `TopologicalSort` with calls on `ts.pop_iter()` instead.
-
-### Fixed
-
-* Updated copyright and license statements.
 
 ## [0.2.2] - 2022-07-18
 
