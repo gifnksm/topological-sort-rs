@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Implemented `Extend<DependencyLink<T>>` for `TopologicalSort<T>`, allowing dependency links to be appended with `extend()`.
+* Added `TopologicalSort::pop_iter()`, which returns a `PopIter<'_, T>` that repeatedly calls `pop()`.
 * Added `CHANGELOG.md`.
 
 ### Changed
@@ -39,14 +40,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Replace `.map(DependencyLink::from)` on `(succ, prec)` tuples with `.map(|(succ, prec)| DependencyLink { prec, succ })`.
 
 * **(Breaking Change)** Removed `impl FromIterator<T> for TopologicalSort<T>`.
-  The implementation compared each item with all previously seen items using `partial_cmp()`, added dependency links for comparable pairs, and ignored equal or incomparable pairs, so the work grew as `n^2` with the length of the input iterator.
-  This was a poor fit for `collect()`: a call like `items.into_iter().collect::<TopologicalSort<_>>()` does not suggest pairwise comparison against all previously seen items or `n^2` work over the input.
+  `TopologicalSort::from_iter(iter)` or `iter.collect::<TopologicalSort<T>>()` compared each item with all previously seen items using `partial_cmp()` and inferred dependency links from every comparable pair.
+  That behavior was not intuitive for `from_iter()`, which readers could reasonably expect to just gather items or to derive relationships only from something more local such as adjacent pairs.
+  It also made `from_iter()` unexpectedly `O(n^2)` instead of the `O(n)` work that a collection-style operation usually suggests.
 
   Migration notes:
 
   * There is no direct replacement for `items.into_iter().collect::<TopologicalSort<_>>()`.
   * If `partial_cmp()` defines a total order for your values and you only needed to iterate them in order, collect them into a `Vec` and sort it directly instead of using `TopologicalSort`.
   * If you intended to model dependency links, construct the graph explicitly with `TopologicalSort::new()` plus `insert()`, `add_dependency()`, and/or `add_link()`.
+
+* **(Breaking Change)** Removed `impl Iterator for TopologicalSort<T>`.
+  Destructive iteration now requires an explicit `TopologicalSort::pop_iter()` call.
+  Iterating `TopologicalSort` removes items from the sort.
+  Implementing `Iterator` for `TopologicalSort` exposed methods such as `count()`, `find()`, and `filter()` directly on the sort itself.
+  On `TopologicalSort`, those methods look like inspection or search operations, even though calling them could destructively advance or consume the sort.
+  Requiring `pop_iter()` makes that destructive step explicit.
+
+  Migration notes:
+
+  * Replace `ts.next()` with `ts.pop()` when consuming one item at a time.
+  * Replace iteration through `TopologicalSort` itself with `ts.pop_iter()`.
+  * Replace direct iterator adapter calls on `TopologicalSort` with calls on `ts.pop_iter()` instead.
 
 ### Fixed
 
