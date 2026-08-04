@@ -56,21 +56,21 @@ where
     /// ts.add_dependency("stdio.h", "hello_world.o");
     /// ts.add_dependency("glibc.so", "hello_world");
     /// assert_eq!(vec!["glibc.so", "hello_world.c", "stdio.h"], {
-    ///     let mut v = ts.pop_all();
+    ///     let mut v = ts.pop_batch();
     ///     v.sort();
     ///     v
     /// });
     /// assert_eq!(vec!["hello_world.o"], {
-    ///     let mut v = ts.pop_all();
+    ///     let mut v = ts.pop_batch();
     ///     v.sort();
     ///     v
     /// });
     /// assert_eq!(vec!["hello_world"], {
-    ///     let mut v = ts.pop_all();
+    ///     let mut v = ts.pop_batch();
     ///     v.sort();
     ///     v
     /// });
-    /// assert!(ts.pop_all().is_empty());
+    /// assert!(ts.pop_batch().is_empty());
     /// ```
     #[inline]
     #[must_use]
@@ -156,10 +156,10 @@ where
         }
     }
 
-    /// Removes the item that is not depended on by any other items and returns it, or `None` if
-    /// there is no such item.
+    /// Removes one item that does not depend on any other remaining item and returns it, or
+    /// `None` if there is no such item.
     ///
-    /// If `pop` returns `None` and `len` is not 0, there is cyclic dependencies.
+    /// If `pop` returns `None` and `len` is not 0, the remaining items contain a cycle.
     pub fn pop(&mut self) -> Option<T> {
         self.peek().cloned().inspect(|key| {
             self.remove(key);
@@ -191,11 +191,16 @@ where
         PopIter { ts: self }
     }
 
-    /// Removes all items that are not depended on by any other items and returns it, or empty
-    /// vector if there are no such items.
+    /// Removes all items that do not depend on any other remaining item at the time of the call
+    /// and returns them, or an empty vector if there are no such items.
     ///
-    /// If `pop_all` returns an empty vector and `len` is not 0, there is cyclic dependencies.
-    pub fn pop_all(&mut self) -> Vec<T> {
+    /// Unlike [`pop_iter`](Self::pop_iter), this removes only the current batch of ready items. If
+    /// removing those items makes more items ready, they are returned by the next call to
+    /// `pop_batch`, not the current one.
+    ///
+    /// If `pop_batch` returns an empty vector and `len` is not 0, the remaining items contain a
+    /// cycle.
+    pub fn pop_batch(&mut self) -> Vec<T> {
         let keys = self
             .nodes
             .iter()
@@ -208,8 +213,8 @@ where
         keys
     }
 
-    /// Return a reference to the first item that does not depend on any other items, or `None` if
-    /// there is no such item.
+    /// Returns a reference to one item that does not depend on any other remaining item, or
+    /// `None` if there is no such item.
     #[must_use]
     pub fn peek(&self) -> Option<&T> {
         self.nodes
@@ -219,10 +224,12 @@ where
             .next()
     }
 
-    /// Return a vector of references to all items that do not depend on any other items, or an
-    /// empty vector if there are no such items.
+    /// Returns references to all items that do not depend on any other remaining item at the time
+    /// of the call, or an empty vector if there are no such items.
+    ///
+    /// This inspects only the current batch of ready items.
     #[must_use]
-    pub fn peek_all(&self) -> Vec<&T> {
+    pub fn peek_batch(&self) -> Vec<&T> {
         self.nodes
             .iter()
             .filter(|&(_, v)| v.num_prec == 0)
@@ -392,10 +399,10 @@ mod tests {
     }
 
     #[test]
-    fn pop_all_returns_all_currently_available_elements() {
+    fn pop_batch_returns_all_currently_available_elements() {
         fn check(result: &[i32], ts: &mut TopologicalSort<i32>) {
             let l = ts.len();
-            let mut v = ts.pop_all();
+            let mut v = ts.pop_batch();
             v.sort_unstable();
             assert_eq!(result, &v[..]);
             assert_eq!(l - result.len(), ts.len());
