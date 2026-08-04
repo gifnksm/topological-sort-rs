@@ -6,7 +6,7 @@
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/topological-sort.svg?)](#license)
 [![crates.io](https://img.shields.io/crates/v/topological-sort.svg?logo=rust)](https://crates.io/crates/topological-sort)
 [![docs.rs](https://img.shields.io/docsrs/topological-sort.svg?logo=docs.rs)](https://docs.rs/topological-sort)
-[![Rust: ^1.85.0](https://img.shields.io/badge/rust-^1.85.0-93450a.svg?logo=rust)](https://doc.rust-lang.org/cargo/reference/manifest.html#the-rust-version-field)
+[![Rust: ^1.88.0](https://img.shields.io/badge/rust-^1.88.0-93450a.svg?logo=rust)](https://doc.rust-lang.org/cargo/reference/manifest.html#the-rust-version-field)
 [![GitHub Actions: CI](https://img.shields.io/github/actions/workflow/status/gifnksm/topological-sort-rs/ci.yml.svg?label=CI&logo=github)](https://github.com/gifnksm/topological-sort-rs/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/gifnksm/topological-sort-rs.svg?label=codecov&logo=codecov)](https://codecov.io/gh/gifnksm/topological-sort-rs)
 <!-- cargo-sync-rdme ]] -->
@@ -163,7 +163,7 @@ topological-sort = "0.2.2"
 
 ## Minimum supported Rust version (MSRV)
 
-The minimum supported Rust version is **Rust 1.85.0**.
+The minimum supported Rust version is **Rust 1.88.0**.
 
 While a crate is pre-release status (0.x.x) it may have its MSRV bumped in a patch release.
 Once a crate has reached 1.x, any MSRV bump will be accompanied with a new minor version.

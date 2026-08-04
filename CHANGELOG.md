@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * **(Breaking Change)** `TopologicalSort::add_dependency()` and `TopologicalSort::add_link()` now return `true` when they add a new dependency link and `false` when that link already existed.
-* Raised the minimum supported Rust version to Rust 1.85.0.
+* Raised the minimum supported Rust version to Rust 1.88.0.
 * Adjusted `TopologicalSort<T>` debug output to use a more collection-like representation of dependency relationships.
 * Added `#[must_use]` to `TopologicalSort::new()`, `len()`, `is_empty()`, `peek()`, and `peek_batch()`, which may produce new warnings when their return values are ignored.
 * **(Breaking Change)** Renamed `TopologicalSort::pop_all()` to `TopologicalSort::pop_batch()` and `TopologicalSort::peek_all()` to `TopologicalSort::peek_batch()`.
