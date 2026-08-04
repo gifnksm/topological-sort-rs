@@ -6,7 +6,7 @@ use std::{
     collections::{HashMap, HashSet, hash_map::Entry},
     fmt,
     hash::Hash,
-    iter::FromIterator,
+    iter::{FromIterator, FusedIterator},
 };
 
 #[derive(Clone, Debug)]
@@ -166,6 +166,31 @@ where
         })
     }
 
+    /// Returns an iterator that repeatedly calls [`pop`](Self::pop).
+    ///
+    /// Each call to [`Iterator::next`] removes one item from the sort.
+    ///
+    /// The iterator ends when the sort becomes empty or when no item can be popped because the
+    /// remaining items contain a cycle.
+    ///
+    /// ```rust
+    /// use topological_sort::TopologicalSort;
+    ///
+    /// let mut ts = TopologicalSort::new();
+    /// ts.add_dependency(1, 2);
+    /// ts.add_dependency(2, 3);
+    ///
+    /// let mut it = ts.pop_iter();
+    /// assert_eq!(Some(1), it.next());
+    /// assert_eq!(Some(2), it.next());
+    /// drop(it);
+    ///
+    /// assert_eq!(Some(3), ts.pop());
+    /// ```
+    pub fn pop_iter(&mut self) -> PopIter<'_, T> {
+        PopIter { ts: self }
+    }
+
     /// Removes all items that are not depended on by any other items and returns it, or empty
     /// vector if there are no such items.
     ///
@@ -255,16 +280,31 @@ where
     }
 }
 
-impl<T> Iterator for TopologicalSort<T>
+/// An iterator over items popped from a [`TopologicalSort`].
+///
+/// This struct is created by [`TopologicalSort::pop_iter`].
+#[derive(Debug)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+pub struct PopIter<'a, T> {
+    ts: &'a mut TopologicalSort<T>,
+}
+
+impl<T> Iterator for PopIter<'_, T>
 where
-    T: Hash + Eq + Clone,
+    T: Clone + Eq + Hash,
 {
     type Item = T;
 
-    fn next(&mut self) -> Option<T> {
-        self.pop()
+    fn next(&mut self) -> Option<Self::Item> {
+        self.ts.pop()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.ts.len()))
     }
 }
+
+impl<T> FusedIterator for PopIter<'_, T> where T: Clone + Eq + Hash {}
 
 impl<T> fmt::Debug for TopologicalSort<T>
 where
@@ -315,16 +355,40 @@ mod tests {
     }
 
     #[test]
-    fn next_returns_elements_in_topological_order() {
+    fn pop_iter_iterates_all_elements_in_topological_order() {
         let mut ts = TopologicalSort::<i32>::new();
         ts.add_dependency(1, 2);
         ts.add_dependency(2, 3);
         ts.add_dependency(3, 4);
-        assert_eq!(Some(1), ts.next());
-        assert_eq!(Some(2), ts.next());
-        assert_eq!(Some(3), ts.next());
-        assert_eq!(Some(4), ts.next());
-        assert_eq!(None, ts.next());
+        ts.add_dependency(4, 5);
+        ts.add_dependency(5, 6);
+        let mut it = ts.pop_iter();
+        assert_eq!(Some(1), it.next());
+        assert_eq!(Some(2), it.next());
+        assert_eq!(Some(3), it.next());
+        assert_eq!(Some(4), it.next());
+        assert_eq!(Some(5), it.next());
+        assert_eq!(Some(6), it.next());
+        assert_eq!(None, it.next());
+        assert_eq!(None, it.next());
+    }
+
+    #[test]
+    fn pop_iter_stops_on_a_cycle() {
+        let mut ts = TopologicalSort::<i32>::new();
+        ts.add_dependency(1, 2);
+        ts.add_dependency(2, 3);
+        ts.add_dependency(3, 4);
+        ts.add_dependency(4, 5);
+        ts.add_dependency(5, 5);
+        ts.add_dependency(5, 6);
+        let mut it = ts.pop_iter();
+        assert_eq!(Some(1), it.next());
+        assert_eq!(Some(2), it.next());
+        assert_eq!(Some(3), it.next());
+        assert_eq!(Some(4), it.next());
+        assert_eq!(None, it.next());
+        assert_eq!(None, it.next());
     }
 
     #[test]
