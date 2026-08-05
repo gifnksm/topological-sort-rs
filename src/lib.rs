@@ -363,6 +363,20 @@ where
     }
 
     /// Removes all items that do not depend on any other remaining item at the time of the call
+    /// and returns them, or an empty vector if there are no such items.
+    ///
+    /// The returned items are in arbitrary order.
+    ///
+    /// If `pop_all` returns an empty vector and the sort is not empty, the remaining items contain a cycle.
+    #[deprecated(
+        since = "0.3.0",
+        note = "Use `pop_batch` instead, which returns an arbitrary collection containing all ready items."
+    )]
+    pub fn pop_all(&mut self) -> Vec<T> {
+        self.pop_batch()
+    }
+
+    /// Removes all items that do not depend on any other remaining item at the time of the call
     /// and returns them, or an empty collection if there are no such items.
     ///
     /// Unlike [`pop_iter`](Self::pop_iter), this removes only the current batch of ready items. If
@@ -371,7 +385,7 @@ where
     ///
     /// The returned items are in arbitrary order.
     ///
-    /// If `pop_batch` returns an empty collection and `len` is not 0, the remaining items contain
+    /// If `pop_batch` returns an empty collection and the sort is not empty, the remaining items contain
     /// a cycle.
     ///
     /// ```rust
@@ -422,6 +436,19 @@ where
     pub fn peek(&self) -> Option<&T> {
         let (item, _) = self.nodes.iter().find(|&(_, node)| node.is_ready())?;
         Some(item)
+    }
+
+    /// Returns a vector of references to all items that do not depend on any other remaining item at
+    /// the time of the call.
+    ///
+    /// The returned items are in arbitrary order.
+    #[deprecated(
+        since = "0.3.0",
+        note = "Use `peek_batch` instead, which returns an iterator over all ready items."
+    )]
+    #[must_use]
+    pub fn peek_all(&self) -> Vec<&T> {
+        self.peek_batch().collect()
     }
 
     /// Returns an iterator over references to all items that do not depend on any other remaining

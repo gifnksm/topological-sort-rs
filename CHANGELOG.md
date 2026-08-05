@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Added `TopologicalSort::items()` and `TopologicalSort::into_items()` to iterate over all remaining items, including ones that are still blocked by unresolved dependencies or cycles.
 * Implemented `Extend<DependencyLink<T>>` for `TopologicalSort<T>`, allowing dependency links to be appended with `extend()`.
 * Added `TopologicalSort::pop_iter()`, which returns a `PopIter<'_, T>` that repeatedly calls `pop()`.
+* Added `TopologicalSort::pop_batch()`, which removes and returns the current batch of ready items and can collect into any collection implementing `Default + Extend<T>`.
+* Added `TopologicalSort::peek_batch()`, which iterates over the current batch of ready items.
 * Added `TopologicalSort::remove()`, which removes a specified item only when it has no remaining dependencies.
 * Added `CHANGELOG.md`.
 
@@ -23,24 +25,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Raised the minimum supported Rust version to Rust 1.88.0.
 * Adjusted `TopologicalSort<T>` debug output to use a more collection-like representation of dependency relationships.
 * Added `#[must_use]` to `TopologicalSort::new()`, `len()`, `is_empty()`, `peek()`, and `peek_batch()`, which may produce new warnings when their return values are ignored.
-* **(Breaking Change)** Renamed `TopologicalSort::pop_all()` to `TopologicalSort::pop_batch()`. `pop_batch()` now returns any collection implementing `Default + Extend<T>`.
+
+### Deprecated
+
+* Deprecated `TopologicalSort::pop_all()` in favor of `TopologicalSort::pop_batch()`.
   * **Rationale:**
     The old name could be taken to mean that the method would keep popping items until no more progress was possible.
     However, it only removed the current batch of items that had no remaining dependencies at the time of the call.
     The new name makes that batch-oriented behavior explicit and helps avoid using a single `pop_all()` call as a cycle check.
 
-    The new return type also avoids unnecessary intermediate collection work.
+    `pop_batch()` also avoids unnecessary intermediate collection work.
     Callers can now collect directly into their chosen container instead of always receiving a `Vec`.
   * **Migration notes:**
     * Replace `ts.pop_all()` with `ts.pop_batch::<Vec<_>>()` when you still want a `Vec`.
     * If you intended to keep popping until no more progress is possible, use `ts.pop_iter()` instead, for example `let items: Vec<_> = ts.pop_iter().collect();`.
-* **(Breaking Change)** Renamed `TopologicalSort::peek_all()` to `TopologicalSort::peek_batch()`. `peek_batch()` now returns an iterator instead of allocating a `Vec<&T>`.
+* Deprecated `TopologicalSort::peek_all()` in favor of `TopologicalSort::peek_batch()`.
   * **Rationale:**
     The old name could be taken to mean that the method would inspect every item that would become ready as popping progressed.
     However, it only inspected the current batch of items that had no remaining dependencies at the time of the call.
     The new name makes that batch-oriented behavior explicit.
 
-    Returning an iterator also avoids unnecessary allocation when callers only need to inspect or stream the ready items.
+    `peek_batch()` also avoids unnecessary allocation when callers only need to inspect or stream the ready items.
   * **Migration notes:**
     * Replace `ts.peek_all()` with `ts.peek_batch().collect::<Vec<_>>()` when you still want `Vec<&T>`.
     * If you want owned copied values from `peek_batch()`, use `ts.peek_batch().copied().collect::<Vec<_>>()` for `Copy` types or `ts.peek_batch().cloned().collect::<Vec<_>>()` for `Clone` types.
