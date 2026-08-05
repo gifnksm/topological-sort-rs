@@ -40,21 +40,21 @@ ts.add_dependency("hello_world.c", "hello_world.o");
 ts.add_dependency("hello.h", "hello_world.o");
 
 // Source inputs with no remaining dependencies are ready first.
-let mut first_group = ts.pop_batch();
+let mut first_group = ts.pop_batch::<Vec<_>>();
 first_group.sort();
 assert_eq!(first_group, ["hello.h", "hello_world.c", "libhello.so"]);
 
 // Building those inputs makes the object file ready.
-let mut second_group = ts.pop_batch();
+let mut second_group = ts.pop_batch::<Vec<_>>();
 second_group.sort();
 assert_eq!(second_group, ["hello_world.o"]);
 
 // Finally, the executable itself becomes ready.
-let mut third_group = ts.pop_batch();
+let mut third_group = ts.pop_batch::<Vec<_>>();
 third_group.sort();
 assert_eq!(third_group, ["hello_world"]);
 
-assert!(ts.pop_batch().is_empty());
+assert!(ts.pop_batch::<Vec<_>>().is_empty());
 ````
 
 ### Detecting circular dependencies
@@ -123,7 +123,7 @@ type Task = String;
 
 fn run_scheduler(tasks: TopologicalSort<Task>) {
     let mut remaining_tasks = tasks;
-    let mut running_tasks = HashSet::new();
+    let mut running_tasks = HashSet::<Task>::new();
 
     while !remaining_tasks.is_empty() {
         // `peek_batch()` returns every task whose prerequisites are
@@ -131,9 +131,8 @@ fn run_scheduler(tasks: TopologicalSort<Task>) {
         let runnable_or_running_tasks = remaining_tasks.peek_batch();
 
         let runnable_tasks = runnable_or_running_tasks
-            .into_iter()
+            .filter(|task| !running_tasks.contains(*task))
             .cloned()
-            .filter(|task| !running_tasks.contains(task))
             .collect::<Vec<Task>>();
 
         if !runnable_tasks.is_empty() {

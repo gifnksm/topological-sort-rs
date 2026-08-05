@@ -26,21 +26,21 @@
 //! ts.add_dependency("hello.h", "hello_world.o");
 //!
 //! // Source inputs with no remaining dependencies are ready first.
-//! let mut first_group = ts.pop_batch();
+//! let mut first_group = ts.pop_batch::<Vec<_>>();
 //! first_group.sort();
 //! assert_eq!(first_group, ["hello.h", "hello_world.c", "libhello.so"]);
 //!
 //! // Building those inputs makes the object file ready.
-//! let mut second_group = ts.pop_batch();
+//! let mut second_group = ts.pop_batch::<Vec<_>>();
 //! second_group.sort();
 //! assert_eq!(second_group, ["hello_world.o"]);
 //!
 //! // Finally, the executable itself becomes ready.
-//! let mut third_group = ts.pop_batch();
+//! let mut third_group = ts.pop_batch::<Vec<_>>();
 //! third_group.sort();
 //! assert_eq!(third_group, ["hello_world"]);
 //!
-//! assert!(ts.pop_batch().is_empty());
+//! assert!(ts.pop_batch::<Vec<_>>().is_empty());
 //! ```
 //!
 //! ## Detecting circular dependencies
@@ -90,7 +90,7 @@
 //! #   processed.push(item);
 //! }
 //!
-//! # assert_eq!(processed, vec!["parse", "analyze", "compile"]);
+//! # assert_eq!(processed, ["parse", "analyze", "compile"]);
 //! ```
 //!
 //! ## Using `TopologicalSort` in a task scheduler
@@ -115,7 +115,7 @@
 //! # fn wait_for_task_completion(_running_tasks: &HashSet<Task>) -> Task { todo!() }
 //! fn run_scheduler(tasks: TopologicalSort<Task>) {
 //!     let mut remaining_tasks = tasks;
-//!     let mut running_tasks = HashSet::new();
+//!     let mut running_tasks = HashSet::<Task>::new();
 //!
 //!     while !remaining_tasks.is_empty() {
 //!         // `peek_batch()` returns every task whose prerequisites are
@@ -123,9 +123,8 @@
 //!         let runnable_or_running_tasks = remaining_tasks.peek_batch();
 //!
 //!         let runnable_tasks = runnable_or_running_tasks
-//!             .into_iter()
+//!             .filter(|task| !running_tasks.contains(*task))
 //!             .cloned()
-//!             .filter(|task| !running_tasks.contains(task))
 //!             .collect::<Vec<Task>>();
 //!
 //!         if !runnable_tasks.is_empty() {
@@ -364,7 +363,7 @@ where
     }
 
     /// Removes all items that do not depend on any other remaining item at the time of the call
-    /// and returns them, or an empty vector if there are no such items.
+    /// and returns them, or an empty collection if there are no such items.
     ///
     /// Unlike [`pop_iter`](Self::pop_iter), this removes only the current batch of ready items. If
     /// removing those items makes more items ready, they are returned by the next call to
@@ -372,8 +371,8 @@ where
     ///
     /// The returned items are in arbitrary order.
     ///
-    /// If `pop_batch` returns an empty vector and `len` is not 0, the remaining items contain a
-    /// cycle.
+    /// If `pop_batch` returns an empty collection and `len` is not 0, the remaining items contain
+    /// a cycle.
     ///
     /// ```rust
     /// use topological_sort::TopologicalSort;
@@ -382,17 +381,20 @@ where
     /// ts.add_dependency(1, 3);
     /// ts.add_dependency(2, 3);
     ///
-    /// let mut ready = ts.pop_batch();
+    /// let mut ready = ts.pop_batch::<Vec<_>>();
     /// ready.sort_unstable();
-    /// assert_eq!(ready, vec![1, 2]);
+    /// assert_eq!(ready, [1, 2]);
     ///
-    /// assert_eq!(ts.pop_batch(), vec![3]);
+    /// assert_eq!(ts.pop_batch::<Vec<_>>(), [3]);
     /// ```
-    pub fn pop_batch(&mut self) -> Vec<T> {
+    pub fn pop_batch<R>(&mut self) -> R
+    where
+        R: Default + Extend<T>,
+    {
         let (items, nodes) = self
             .nodes
             .extract_if(|_, node| node.is_ready())
-            .collect::<(Vec<_>, Vec<_>)>();
+            .collect::<(R, Vec<_>)>();
         for node in nodes {
             for succ in node.succ {
                 if let Some(succ_node) = self.nodes.get_mut(&succ) {
@@ -422,10 +424,11 @@ where
         Some(item)
     }
 
-    /// Returns references to all items that do not depend on any other remaining item at the time
-    /// of the call, or an empty vector if there are no such items.
+    /// Returns an iterator over references to all items that do not depend on any other remaining
+    /// item at the time of the call.
     ///
-    /// This inspects only the current batch of ready items.
+    /// The iterator yields no items if there are no such items. This inspects only the current
+    /// batch of ready items.
     ///
     /// The returned items are in arbitrary order.
     ///
@@ -436,18 +439,15 @@ where
     /// ts.add_dependency(1, 3);
     /// ts.add_dependency(2, 3);
     ///
-    /// let mut ready = ts.peek_batch();
+    /// let mut ready = ts.peek_batch().copied().collect::<Vec<_>>();
     /// ready.sort_unstable();
-    /// assert_eq!(ready, vec![&1, &2]);
+    /// assert_eq!(ready, [1, 2]);
     /// assert_eq!(ts.len(), 3);
     /// ```
-    #[must_use]
-    pub fn peek_batch(&self) -> Vec<&T> {
-        self.nodes
-            .iter()
-            .filter(|&(_, node)| node.is_ready())
-            .map(|(item, _)| item)
-            .collect::<Vec<_>>()
+    pub fn peek_batch(&self) -> PeekBatch<'_, T> {
+        PeekBatch {
+            iter: self.nodes.iter(),
+        }
     }
 
     /// Returns an iterator visiting all remaining items in arbitrary order.
@@ -569,6 +569,34 @@ where
 }
 
 impl<T> FusedIterator for PopIter<'_, T> where T: Clone + Eq + Hash {}
+
+/// An iterator over all items in a [`TopologicalSort`] that do not depend on any other remaining
+/// item at the time of the call.
+///
+/// This struct is created by [`TopologicalSort::peek_batch`].
+#[derive(Debug)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+pub struct PeekBatch<'a, T> {
+    iter: hash_map::Iter<'a, T, Node<T>>,
+}
+
+impl<'a, T> Iterator for PeekBatch<'a, T>
+where
+    T: Clone + Eq + Hash,
+{
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let (item, _) = self.iter.find(|&(_, node)| node.is_ready())?;
+        Some(item)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.iter.len()))
+    }
+}
+
+impl<T> FusedIterator for PeekBatch<'_, T> where T: Clone + Eq + Hash {}
 
 /// An iterator over all remaining items in a [`TopologicalSort`].
 ///
@@ -703,7 +731,7 @@ mod tests {
     fn pop_batch_returns_all_currently_ready_items() {
         fn check(result: &[i32], ts: &mut TopologicalSort<i32>) {
             let l = ts.len();
-            let mut v = ts.pop_batch();
+            let mut v = ts.pop_batch::<Vec<_>>();
             v.sort_unstable();
             assert_eq!(result, &v[..]);
             assert_eq!(l - result.len(), ts.len());
@@ -807,11 +835,11 @@ mod tests {
 
         let mut items = ts.items().copied().collect::<Vec<_>>();
         items.sort_unstable();
-        assert_eq!(items, vec!["a", "b", "c", "d"]);
+        assert_eq!(items, ["a", "b", "c", "d"]);
 
         let mut into_items = ts.into_items().collect::<Vec<_>>();
         into_items.sort_unstable();
-        assert_eq!(into_items, vec!["a", "b", "c", "d"]);
+        assert_eq!(into_items, ["a", "b", "c", "d"]);
     }
 
     #[quickcheck]
