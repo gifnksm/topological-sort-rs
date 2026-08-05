@@ -145,7 +145,7 @@
 
 use std::{
     borrow::Borrow,
-    collections::{HashMap, HashSet, hash_map::Entry},
+    collections::{HashMap, HashSet, hash_map},
     fmt,
     hash::Hash,
     iter::{FromIterator, FusedIterator},
@@ -186,6 +186,17 @@ impl<T> Default for TopologicalSort<T> {
         TopologicalSort {
             nodes: HashMap::new(),
         }
+    }
+}
+
+impl<T> fmt::Debug for TopologicalSort<T>
+where
+    T: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_map()
+            .entries(self.nodes.iter().map(|(k, dep)| (k, &dep.succ)))
+            .finish()
     }
 }
 
@@ -294,11 +305,11 @@ where
         U: Into<T>,
     {
         match self.nodes.entry(item.into()) {
-            Entry::Vacant(e) => {
+            hash_map::Entry::Vacant(e) => {
                 e.insert(Node::new());
                 true
             }
-            Entry::Occupied(_) => false,
+            hash_map::Entry::Occupied(_) => false,
         }
     }
 
@@ -359,6 +370,8 @@ where
     /// removing those items makes more items ready, they are returned by the next call to
     /// `pop_batch`, not the current one.
     ///
+    /// The returned items are in arbitrary order.
+    ///
     /// If `pop_batch` returns an empty vector and `len` is not 0, the remaining items contain a
     /// cycle.
     ///
@@ -405,17 +418,16 @@ where
     /// ```
     #[must_use]
     pub fn peek(&self) -> Option<&T> {
-        self.nodes
-            .iter()
-            .filter(|&(_, node)| node.is_ready())
-            .map(|(item, _)| item)
-            .next()
+        let (item, _) = self.nodes.iter().find(|&(_, node)| node.is_ready())?;
+        Some(item)
     }
 
     /// Returns references to all items that do not depend on any other remaining item at the time
     /// of the call, or an empty vector if there are no such items.
     ///
     /// This inspects only the current batch of ready items.
+    ///
+    /// The returned items are in arbitrary order.
     ///
     /// ```rust
     /// use topological_sort::TopologicalSort;
@@ -436,6 +448,26 @@ where
             .filter(|&(_, node)| node.is_ready())
             .map(|(item, _)| item)
             .collect::<Vec<_>>()
+    }
+
+    /// Returns an iterator visiting all remaining items in arbitrary order.
+    ///
+    /// This includes items that are not yet ready because they are blocked by unresolved
+    /// dependencies or cycles.
+    pub fn items(&self) -> Items<'_, T> {
+        Items {
+            iter: self.nodes.keys(),
+        }
+    }
+
+    /// Returns a consuming iterator visiting all remaining items in arbitrary order.
+    ///
+    /// This includes items that are not yet ready because they are blocked by unresolved
+    /// dependencies or cycles.
+    pub fn into_items(self) -> IntoItems<T> {
+        IntoItems {
+            iter: self.nodes.into_keys(),
+        }
     }
 
     /// Removes the specified item if it does not depend on any other remaining item and returns
@@ -538,16 +570,60 @@ where
 
 impl<T> FusedIterator for PopIter<'_, T> where T: Clone + Eq + Hash {}
 
-impl<T> fmt::Debug for TopologicalSort<T>
+/// An iterator over all remaining items in a [`TopologicalSort`].
+///
+/// This struct is created by [`TopologicalSort::items`].
+#[derive(Debug)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+pub struct Items<'a, T> {
+    iter: hash_map::Keys<'a, T, Node<T>>,
+}
+
+impl<'a, T> Iterator for Items<'a, T>
 where
-    T: fmt::Debug,
+    T: Clone + Eq + Hash,
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_map()
-            .entries(self.nodes.iter().map(|(k, dep)| (k, &dep.succ)))
-            .finish()
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
     }
 }
+
+impl<T> ExactSizeIterator for Items<'_, T> where T: Clone + Eq + Hash {}
+
+impl<T> FusedIterator for Items<'_, T> where T: Clone + Eq + Hash {}
+
+/// An iterator that consumes a [`TopologicalSort`] and yields all remaining items.
+///
+/// This struct is created by [`TopologicalSort::into_items`].
+#[derive(Debug)]
+#[must_use = "iterators are lazy and do nothing unless consumed"]
+pub struct IntoItems<T> {
+    iter: hash_map::IntoKeys<T, Node<T>>,
+}
+
+impl<T> Iterator for IntoItems<T>
+where
+    T: Clone + Eq + Hash,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+impl<T> ExactSizeIterator for IntoItems<T> where T: Clone + Eq + Hash {}
+impl<T> FusedIterator for IntoItems<T> where T: Clone + Eq + Hash {}
 
 #[cfg(test)]
 mod tests {
@@ -720,6 +796,22 @@ mod tests {
         assert!(ts.remove("c").is_none());
         assert_eq!(ts.remove("b").unwrap(), "b");
         assert_eq!(ts.remove("c").unwrap(), "c");
+    }
+
+    #[test]
+    fn items_and_into_items_iterate_all_remaining_items() {
+        let mut ts = TopologicalSort::<&str>::new();
+        ts.add_dependency("a", "b");
+        ts.add_dependency("b", "c");
+        ts.add_dependency("c", "d");
+
+        let mut items = ts.items().copied().collect::<Vec<_>>();
+        items.sort_unstable();
+        assert_eq!(items, vec!["a", "b", "c", "d"]);
+
+        let mut into_items = ts.into_items().collect::<Vec<_>>();
+        into_items.sort_unstable();
+        assert_eq!(into_items, vec!["a", "b", "c", "d"]);
     }
 
     #[quickcheck]
