@@ -18,7 +18,7 @@ A data structure for topological sorting.
 
 ### Modeling Makefile-style dependencies
 
-This example reproduces a small `Makefile`. Each call to [`TopologicalSort::pop_batch`](https://docs.rs/topological-sort/0.3.0/topological_sort/struct.TopologicalSort.html#method.pop_batch)
+This example reproduces a small `Makefile`. Each call to [`TopologicalSort::pop_batch`](https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.pop_batch)
 returns the next batch of files that can be built in parallel.
 
 ````Makefile
@@ -87,7 +87,7 @@ assert!(!has_circular_dependency(ts2));
 
 ### Processing items one at a time
 
-This example repeatedly calls [`TopologicalSort::pop`](https://docs.rs/topological-sort/0.3.0/topological_sort/struct.TopologicalSort.html#method.pop) to process items as soon as each next
+This example repeatedly calls [`TopologicalSort::pop`](https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.pop) to process items as soon as each next
 item becomes ready.
 
 ````rust
@@ -105,12 +105,12 @@ while let Some(item) = ts.pop() {
 
 ### Using `TopologicalSort` in a task scheduler
 
-[`TopologicalSort`](https://docs.rs/topological-sort/0.3.0/topological_sort/struct.TopologicalSort.html) can serve as the dependency tracker inside a task
-scheduler. [`TopologicalSort::peek_batch`](https://docs.rs/topological-sort/0.3.0/topological_sort/struct.TopologicalSort.html#method.peek_batch) returns all tasks whose
-prerequisites are satisfied, and [`TopologicalSort::remove`](https://docs.rs/topological-sort/0.3.0/topological_sort/struct.TopologicalSort.html#method.remove) marks a
+[`TopologicalSort`](https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html) can serve as the dependency tracker inside a task
+scheduler. [`TopologicalSort::peek_batch`](https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.peek_batch) returns all tasks whose
+prerequisites are satisfied, and [`TopologicalSort::remove`](https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.remove) marks a
 completed task as done, which may make more tasks ready.
 
-Because [`TopologicalSort::peek_batch`](https://docs.rs/topological-sort/0.3.0/topological_sort/struct.TopologicalSort.html#method.peek_batch) does not remove tasks, a scheduler
+Because [`TopologicalSort::peek_batch`](https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.peek_batch) does not remove tasks, a scheduler
 also needs to track which ready tasks are already running so it does not
 start them twice.
 
@@ -157,7 +157,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-topological-sort = "0.3.0"
+topological-sort = "0.3.1"
 ```
 
 ## Minimum supported Rust version (MSRV)
