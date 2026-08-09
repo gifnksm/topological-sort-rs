@@ -59,7 +59,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           components: rustfmt
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just
       - run: just ci-rustfmt
@@ -79,7 +79,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-hack
       - uses: Swatinem/rust-cache@v2
@@ -101,7 +101,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-hack
       - uses: Swatinem/rust-cache@v2
@@ -122,7 +122,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-hack
       - uses: Swatinem/rust-cache@v2
@@ -143,7 +143,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-hack,cargo-docs-rs
       - uses: Swatinem/rust-cache@v2
@@ -164,7 +164,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-hack,cargo-sync-rdme
       - uses: Swatinem/rust-cache@v2
@@ -187,7 +187,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-machete
       - uses: Swatinem/rust-cache@v2
@@ -209,7 +209,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-hack
       - run: just ci-test
@@ -231,7 +231,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,cargo-llvm-cov
       - run: just ci-coverage
@@ -256,7 +256,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: cargo-release,just,cargo-hack,cargo-sync-rdme
       - run: rustup toolchain install nightly --profile minimal
@@ -269,7 +269,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just
       - name: Install actionlint
@@ -284,7 +284,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just,typos
       - run: just ci-typos
@@ -294,7 +294,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just
       - run: just ci-markdownlint
@@ -304,7 +304,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just
       - uses: editorconfig-checker/action-editorconfig-checker@v2.2.0
@@ -316,7 +316,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v9.0.0
-      - uses: taiki-e/install-action@v2.85.5
+      - uses: taiki-e/install-action@v2
         with:
           tool: just
       - run: just ci-tombi-format
