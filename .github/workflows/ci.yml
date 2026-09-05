@@ -307,7 +307,7 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: just
-      - uses: editorconfig-checker/action-editorconfig-checker@v2.2.0
+      - uses: editorconfig-checker/action-editorconfig-checker@v3.0.0
       - run: just ci-editorconfig -format github-actions
 
   tombi:
