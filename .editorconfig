@@ -11,10 +11,7 @@ trim_trailing_whitespace = true
 [*.rs]
 indent_size = 4
 
-[*.{toml,json}]
-indent_size = 2
-
-[*.{yml,yaml}]
+[*.{toml,json,jsonc,yml,yaml}]
 indent_size = 2
 
 [*.md]
