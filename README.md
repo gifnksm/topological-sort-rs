@@ -114,6 +114,12 @@ Because [`TopologicalSort::peek_batch`] does not remove tasks, a scheduler
 also needs to track which ready tasks are already running so it does not
 start them twice.
 
+[`TopologicalSort::pop_batch`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.pop_batch "method topological_sort::TopologicalSort::pop_batch"
+[`TopologicalSort::pop`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.pop "method topological_sort::TopologicalSort::pop"
+[`TopologicalSort`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html "struct topological_sort::TopologicalSort"
+[`TopologicalSort::peek_batch`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.peek_batch "method topological_sort::TopologicalSort::peek_batch"
+[`TopologicalSort::remove`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.remove "method topological_sort::TopologicalSort::remove"
+
 ````rust
 use std::collections::HashSet;
 
@@ -147,12 +153,6 @@ fn run_scheduler(tasks: TopologicalSort<Task>) {
     }
 }
 ````
-
-[`TopologicalSort::pop_batch`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.pop_batch "method topological_sort::TopologicalSort::pop_batch"
-[`TopologicalSort::pop`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.pop "method topological_sort::TopologicalSort::pop"
-[`TopologicalSort`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html "struct topological_sort::TopologicalSort"
-[`TopologicalSort::peek_batch`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.peek_batch "method topological_sort::TopologicalSort::peek_batch"
-[`TopologicalSort::remove`]: https://docs.rs/topological-sort/0.3.1/topological_sort/struct.TopologicalSort.html#method.remove "method topological_sort::TopologicalSort::remove"
 <!-- cargo-sync-rdme ]] -->
 
 [Documentation](https://docs.rs/topological-sort)
